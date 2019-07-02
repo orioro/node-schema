@@ -1,4 +1,5 @@
 import { ValidationError } from '@orioro/validate'
+import { schemaParse } from './schema-parse'
 import { schemaParseValue } from './schema-parse-value'
 import { schemaValidateValue } from './schema-validate-value'
 
@@ -21,6 +22,7 @@ const _wrap = (options, fn) => {
 
 export const dataSchema = (options = {}) => {
   return {
+    parse: _wrap(options, schemaParse),
     parseValue: _wrap(options, schemaParseValue),
     validateValue: _wrap(options, schemaValidateValue),
     parseAndValidateValue: _wrap(options, schemaParseAndValidateValue),
@@ -29,6 +31,7 @@ export const dataSchema = (options = {}) => {
 
 export * from './schema-validate-value'
 export * from './schema-parse-value'
+export * from './schema-parse'
 export {
   ValidationError
 }

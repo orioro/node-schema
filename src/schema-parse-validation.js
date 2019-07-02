@@ -1,7 +1,3 @@
-import {
-  validate as _validate,
-  VALIDATORS,
-} from '@orioro/validate'
 import { filterMatching } from '@orioro/cascade'
 import {
   mergeTypeLists,
@@ -129,6 +125,42 @@ const PARSER_REQUIRED = {
   }
 }
 
+// const PARSER_CONDITIONALS = {
+//   criteria: {
+//     conditionals: {
+//       $exists: true,
+//       $type: 'array',
+//     }
+//   },
+//   value: (schema, options, validation) => {
+
+//     const SCHEMA_TYPE = schema.type
+
+//     const conditionalValidations = schema.conditionals.reduce((acc, {
+//       criteria,
+//       ...conditionalSchema
+//     }) => {
+//       const validation = _schemaParseValidation(options, {
+//         type: SCHEMA_TYPE,
+//         ...conditionalSchema
+//       })
+
+//       return Object.keys(validation).length > 0 ? [...acc, {
+//         criteria,
+//         validation: validation,
+//       }] : acc
+
+//     }, [])
+
+//     return {
+//       ...validation,
+//       when: {
+//         cases: conditionalValidations
+//       }
+//     }
+//   }
+// }
+
 const PARSER_DEFAULT = {
   criteria: true,
   value: (schema, options, validation) => {
@@ -148,6 +180,7 @@ const CORE_VALIDATION_PARSERS = [
   PARSER_TYPE_DATE,
 
   PARSER_REQUIRED,
+  // PARSER_CONDITIONALS,
   PARSER_DEFAULT,
 ]
 

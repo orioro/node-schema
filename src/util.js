@@ -53,3 +53,5 @@ export const mergeArrays = (...args) => {
 export const schemaIsType = (schema, types) => {
   return schema.type && types.indexOf(schema.type) !== -1
 }
+
+export * from './lib/transforms'

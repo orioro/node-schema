@@ -2,7 +2,9 @@ import { schemaParseValue } from '../src'
 
 describe('schemaParseValue(options, schema, value)', () => {
   test('text defaults', () => {
-    expect(schemaParseValue({}, {
+    expect(schemaParseValue({
+      STRING_TYPES: ['text'],
+    }, {
       type: 'text',
       default: 'Some default text'
     }, undefined)).toEqual('Some default text')
@@ -31,10 +33,14 @@ describe('schemaParseValue(options, schema, value)', () => {
       }
     }
 
-    expect(schemaParseValue({ recursive: true }, PERSON_SCHEMA, undefined)).toEqual({
+    expect(schemaParseValue({
+      STRING_TYPES: ['text'],
+      recursive: true
+    }, PERSON_SCHEMA, undefined)).toEqual({
       name: 'João',
       address: {
-        line_1: 'Rua Teste, 123'
+        line_1: 'Rua Teste, 123',
+        line_2: ''
       }
     })
   })
@@ -50,7 +56,10 @@ describe('schemaParseValue(options, schema, value)', () => {
       }
     }
 
-    expect(schemaParseValue({ recursive: true }, PERSON_SCHEMA, {
+    expect(schemaParseValue({
+      STRING_TYPES: ['text'],
+      recursive: true
+    }, PERSON_SCHEMA, {
       name: 'João',
       unknownProp1: 'value 1',
       unknownProp2: {

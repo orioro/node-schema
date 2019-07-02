@@ -3,6 +3,7 @@ import {
 } from '../src/schema-parse-validation'
 
 describe('schemaParseValidation(options, schema)', () => {
+
   test('not recursive', () => {
     const SCHEMA = {
       label: 'Document',
@@ -195,6 +196,63 @@ describe('schemaParseValidation(options, schema)', () => {
 
     const validation = schemaParseValidation({ recursive: true }, SCHEMA)
     expect(validation).toMatchSnapshot()
+
+    // console.log(JSON.stringify(validation, null, '  '))
+  })
+
+  test('conditionals', () => {
+    const SCHEMA = {
+      type: 'map',
+      attributes: {
+        name: {
+          type: 'string',
+        },
+        age: {
+          type: 'number',
+        },
+        legalResponsible: {
+          type: 'string',
+        }
+      },
+      conditionals: [
+        {
+          criteria: {
+            age: {
+              $lt: 18
+            }
+          },
+          attributes: {
+            legalResponsible: {
+              required: true,
+            }
+          }
+        }
+      ]
+    }
+
+    const validation = schemaParseValidation({ recursive: true }, SCHEMA)
+
+    // console.log(JSON.stringify(validation, null, '  '))
+  })
+
+  test('conditionals - 2', () => {
+    const SCHEMA = {
+      type: 'number',
+      conditionals: [
+        {
+          criteria: {
+            $gt: 10
+          },
+          validation: {
+            numberMultipleOf: {
+              base: 15,
+            }
+          }
+        }
+      ]
+    }
+
+    const validation = schemaParseValidation({ recursive: false }, SCHEMA)
 
     // console.log(JSON.stringify(validation, null, '  '))
   })
