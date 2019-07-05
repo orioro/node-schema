@@ -16,7 +16,9 @@ const PARSER_SCHEMA_TRANSFORMS = {
       $type: 'array',
     }
   },
-  value: ({ transforms, ...schema}, value, options) => {
+  value: (schema, value, options) => {
+    const { transforms } = schema
+
     const schemaTransforms = transforms.reduce((acc, transform) => {
       return isPlainObject(transform.schema) &&
              (transform.condition === undefined ||
