@@ -27,10 +27,4 @@ export const applyTransforms = (transforms, target, context) => {
   return transforms.reduce((acc, transform) => {
     return _applyTransform(acc, transform, context)
   }, target)
-    // return schemaTransforms.reduce((acc, transform) => {
-    //   return (transform.condition === undefined ||
-    //           (transform.condition && testCriteria(transform.condition, value))) ?
-    //     _applyValueTransform(acc, value, transform.transform) :
-    //     acc
-    // }, cloneDeep(schema))
 }
