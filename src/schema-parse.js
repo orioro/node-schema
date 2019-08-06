@@ -48,7 +48,7 @@ const PARSER_MAP = {
               ...attributeSchema,
               label: attributeSchema.label || attributeId,
             },
-            typeof value === 'object' ? value[attributeId] : value
+            isPlainObject(value) ? value[attributeId] : value
           )
         }
       }, {})
