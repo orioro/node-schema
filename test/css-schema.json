@@ -1,0 +1,78 @@
+{
+  "type": "declarations",
+  "properties": {
+    "declarations": {
+      "type": "list",
+      "itemSchema": "declaration"
+    }
+  }
+}
+
+{
+  "type": "distance",
+  "properties": {
+    "unit": {
+      "type": "string",
+      "options": [
+        "px",
+        "em",
+        "rem",
+        "%"
+      ]
+    }
+  }
+}
+
+{
+  "type": "declaration",
+  "properties": {
+    "property": {
+      "type": "string",
+      "required": true
+    },
+    "value": {
+      "type": ["$switchKey", [
+        [
+          [
+            "paddingTop",
+            "paddingBottom",
+            "paddingLeft",
+            "paddingRight",
+            "marginTop",
+            "marginBottom",
+            "marginLeft",
+            "marginRight"
+          ],
+          {
+            "type": "distance"
+          }
+        ],
+        [
+          [
+            "color",
+            "backgroundColor"
+          ],
+          {
+            "type": "color"
+          }
+        ],
+        [
+          [
+            "fontSize",
+            "lineHeight"
+          ],
+          {
+            "type": "size"
+          }
+        ]
+      ], ["$value", "property"]]
+    }
+  }
+}
+
+{
+  "type": "cssColorDeclaration",
+  "properties": {
+    "k"
+  }
+}

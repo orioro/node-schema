@@ -1,32 +1,35 @@
-const path = require('path')
+import resolve from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
+import babel from '@rollup/plugin-babel'
 
-const resolve = require('rollup-plugin-node-resolve')
-const commonjs = require('rollup-plugin-commonjs')
-const babel = require('rollup-plugin-babel')
+const jsExtensions = ['.mjs', '.js', '.jsx', '.ts', '.tsx', '.json', '.node']
 
 module.exports = {
-	input: 'src/index.js',
+	input: 'src/index.ts',
 	output: [
 		{
-			file: 'index.js',
-			dir: 'dist',
+			file: 'dist/index.js',
 			format: 'cjs',
 			exports: 'named',
 		},
 		{
-			file: 'index.mjs',
-			dir: 'dist',
+			file: 'dist/index.mjs',
 			format: 'esm',
 		}
 	],
-	// external: Object.keys(require('../package.json').dependencies || {}),
-	external: ['lodash.pick'],
+	external: [
+    ...Object.keys(require('../package.json').dependencies || {}),
+    ...Object.keys(require('../package.json').devDependencies),
+  ],
 	plugins: [
 		babel({
 			babelrc: true,
-			exclude: 'node_modules/**'
+			exclude: 'node_modules/**',
+			extensions: jsExtensions
 		}),
-		resolve(),
+		resolve({
+			extensions: jsExtensions
+		}),
 		commonjs(),
 	]
 }

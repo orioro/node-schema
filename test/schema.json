@@ -1,0 +1,29 @@
+{
+  "type": "Person",
+  "properties": {
+    "givenName": {
+      "type": "string",
+      "required": true,
+      "validate": [
+        // [["$and", [["$notNull"], ["$notUndefined"]]], {
+        //   "code": "required",
+        //   "message": "This field is required"
+        // }],
+        [["$gte", 3, ["$stringLength"]], {
+          "code": "minStringLength3"
+        }],
+        [["$lte", 20, ["$stringLength"]], {
+          "code": "maxStringLength20"
+        }]
+      ]
+    },
+    "middleName": {
+      "type": "string",
+      "required": false
+    },
+    "familyName": {
+      "type": "string",
+      "required": true
+    }
+  }
+}
