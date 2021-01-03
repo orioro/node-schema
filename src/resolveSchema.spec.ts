@@ -39,16 +39,16 @@ describe('resolveSchema', () => {
     }
 
 
-    console.time('resolveSchema')
-    const resolvedSchema = resolveSchema({
-
-    }, schema, {
-      key1: 'A',
-      key2: 'A-1'
+    // console.time('resolveSchema')
+    const resolvedSchema = resolveSchema(schema, {
+      value: {
+        key1: 'A',
+        key2: 'A-1'
+      }
     })
 
-    console.timeEnd('resolveSchema')
+    // console.timeEnd('resolveSchema')
 
-    console.log(JSON.stringify(resolvedSchema, null, '  '))
+    // console.log(JSON.stringify(resolvedSchema, null, '  '))
 	})
 })

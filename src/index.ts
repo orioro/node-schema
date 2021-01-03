@@ -1,1 +1,2 @@
-export * from './schema'
+export * from './applyDefaults'
+export * from './resolveSchema'

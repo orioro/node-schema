@@ -1,44 +1,64 @@
 import { isPlainObject, get } from 'lodash'
-import {
-  nestedResolve,
-  RESOLVER_OBJECT,
-  RESOLVER_ARRAY
-} from '@orioro/nested-resolve'
 
 import {
+  cascadeExec,
+  test
+} from '@orioro/cascade'
+
+import {
+  ResolverCandidate,
+
+  nestedMap,
+  objectResolver,
+  arrayResolver,
+} from '@orioro/nested-map'
+
+import {
+  ExpressionInterpreter,
+
   evaluate,
   isExpression,
   ALL_EXPRESSIONS
 } from '@orioro/expression'
 
-const schemaExpressionResolver = () => ([
-  (value) => (
-    isExpression(ALL_EXPRESSIONS, value)
+const schemaExpressionResolver = ({
+  interpreters
+}):ResolverCandidate => ([
+  (schemaValue) => (
+    isExpression(interpreters, schemaValue)
   ),
-  (expressionOrValue, options) => {
+  (schemaExpressionOrValue, options) => {
     const postEvaluation = evaluate({
-      interpreters: ALL_EXPRESSIONS,
+      interpreters,
       data: {
         $$VALUE: options.value
       }
-    }, expressionOrValue)
+    }, schemaExpressionOrValue)
 
     return (
       isPlainObject(postEvaluation) ||
       Array.isArray(postEvaluation)
     )
-      ? resolveSchema(options, postEvaluation, options.value)
+      ? resolveSchema(postEvaluation, options)
       : postEvaluation
   }
 ])
-export const resolveSchema = (options, schema, value) => {
-  return nestedResolve({
+
+export const resolveSchema = (
+  schema,
+  options: {
+    interpreters?: { [key:string]: ExpressionInterpreter },
+    value: any
+  }
+) => {
+  return nestedMap(schema, {
     ...options,
     resolvers: [
-      schemaExpressionResolver(),
-      RESOLVER_OBJECT,
-      RESOLVER_ARRAY,
-    ],
-    value
-  }, schema)
+      schemaExpressionResolver({
+        interpreters: options.interpreters || ALL_EXPRESSIONS
+      }),
+      objectResolver(),
+      arrayResolver(),
+    ]
+  })
 }

@@ -1,9 +1,5 @@
 import { isPlainObject, get } from 'lodash'
-import {
-  nestedResolve,
-  RESOLVER_OBJECT,
-  RESOLVER_ARRAY
-} from '@orioro/nested-resolve'
+import { nestedMap } from '@orioro/nested-map'
 
 export const defaultsMapResolver = (mapTypes:string[] = ['map']) => ([
   (subSchema) => (
@@ -54,12 +50,13 @@ export const defaultsDefaultResolver = (defaultsByType = {
 ])
 
 export const applyDefaults = (options, schema, value) => {
-  return nestedResolve({
+  return nestedMap(schema, {
+    ...options,
     resolvers: [
       defaultsMapResolver(),
       defaultsListResolver(),
       defaultsDefaultResolver()
     ],
     value
-  }, schema)
+  })
 }

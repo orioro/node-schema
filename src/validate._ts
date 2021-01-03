@@ -1,0 +1,48 @@
+import { isPlainObject, get } from 'lodash'
+import { treeSourceNodes } from '@orioro/tree-source-nodes'
+
+const validationMapResolver = (mapTypes = ['map']) => ([
+  (subSchema) => (
+    isPlainObject(subSchema) &&
+    isPlainObject(subSchema.properties) &&
+    mapTypes.includes(subSchema.type)
+  ),
+  (subSchema, validations, path) => {
+    return [
+      ...validations,
+      ...Object.keys(subSchema.properties).reduce((acc, key) => {
+        return [
+          ...acc,
+          ...parseValidation({}, subSchema.properties[key]).map(v => ({
+            ...v,
+            path: `${path}.${key}.${v.path}`
+          }))
+        ]
+      }, [])
+    ]
+
+  }
+])
+
+const validationStringResolver = (stringTypes = ['string']) => ([
+  (subSchemaCandidate) => (
+    isPlainObject(subSchemaCandidate) &&
+    stringTypes.includes(subSchemaCandidate.type)
+  ),
+  (subSchema, validations, path) => {
+    return [...validations, {
+
+    }]
+  }
+])
+
+export const parseValidation = (options, resolvedSchema) => {
+  const validations = cascadeExec(test, [
+    validationMapResolver(),
+  ], resolvedSchema, [], '')
+
+}
+
+export const validate = (options, resolvedSchema, value) => {
+
+}
