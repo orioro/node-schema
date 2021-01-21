@@ -49,9 +49,9 @@ export const stringValidationResolver = ({ types, requiredErrorMessage } = {
   (subSchema) => types.includes(subSchema.type),
   (subSchema, context) => {
 
-    return subSchema.required
-      ? required('string', requiredErrorMessage(subSchema), subSchema.validations)
-      : allowNull()
+    // return subSchema.required
+    //   ? required('string', requiredErrorMessage(subSchema), subSchema.validations)
+    //   : allowNull(1, 2)
 
 
     return subSchema.required
