@@ -36,17 +36,27 @@ describe('applyDefaults', () => {
         key5: {
           type: 'list',
           default: [undefined],
-          item: {
+          itemSchema: {
             type: 'string',
             default: 'key5_item'
           }
         }
       }
     }
-    const value = applyDefaults({
+    const value = applyDefaults(schema, {
+      value: undefined
+    })
 
-    }, schema, undefined)
-
-    // console.log(value)
+    expect(value).toEqual({
+      key1: '',
+      key2: 'key2_default',
+      key3: 'key3_default',
+      key4: {
+        key41: 0,
+        key42: 999,
+        key43: 'key43_default'
+      },
+      key5: ['key5_item']
+    })
 	})
 })

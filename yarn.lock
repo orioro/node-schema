@@ -1471,10 +1471,18 @@
     lodash "^4.17.20"
     luxon "^1.25.0"
 
-"@orioro/nested-map@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@orioro/nested-map/-/nested-map-1.0.0.tgz#46716c886c0e0a7403fb78f90284ebc036658820"
-  integrity sha512-+roRpCsB8DARsMud4c1gBdBvaEwGaOdEQwSYZGiFsBvdQloFDgfMFdeeWQTgb8aG9ACE7HDM+7f8W0BRe3XwjA==
+"@orioro/expression@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@orioro/expression/-/expression-2.0.0.tgz#50bc2e09fee580544948dfbacc7d71376a97fac1"
+  integrity sha512-5uyT4h3e87BXVc3WTbkKKa6N5koe1MT417WTB3Gs/GzuHFgVR/xjta4p73Yk6nprs3lXmg7vvuAh1yLjaUPo/g==
+  dependencies:
+    lodash "^4.17.20"
+    luxon "^1.25.0"
+
+"@orioro/nested-map@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@orioro/nested-map/-/nested-map-1.1.0.tgz#0f992befcceef2feea5ff58e4eb64bb9150c012a"
+  integrity sha512-1efXItZHUckYz+QT6m6ccnrRmSpXAREeXJ2vxSmG2kpcG3i1w54/u0n80tIVQeFHA4uE6+r0KJWW2P7EKsdHcQ==
   dependencies:
     "@orioro/cascade" "^3.0.0-beta.1"
     lodash "^4.17.20"

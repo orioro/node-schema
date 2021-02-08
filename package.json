@@ -36,8 +36,8 @@
   },
   "dependencies": {
     "@orioro/cascade": "^3.0.0",
-    "@orioro/expression": "^1.0.0",
-    "@orioro/nested-map": "^1.0.0",
+    "@orioro/expression": "^2.0.0",
+    "@orioro/nested-map": "^1.1.0",
     "@orioro/tree-source-nodes": "^1.0.1",
     "@orioro/validate": "2.0.0",
     "deep-for-each": "^3.0.0",

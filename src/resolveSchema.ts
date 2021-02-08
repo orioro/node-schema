@@ -1,64 +1,66 @@
-import { isPlainObject, get } from 'lodash'
-
-import {
-  cascadeExec,
-  test
-} from '@orioro/cascade'
-
+import { isPlainObject } from 'lodash'
 import {
   ResolverCandidate,
-
   nestedMap,
   objectResolver,
   arrayResolver,
 } from '@orioro/nested-map'
 
 import {
-  ExpressionInterpreter,
-
   evaluate,
   isExpression,
   ALL_EXPRESSIONS
 } from '@orioro/expression'
 
-const schemaExpressionResolver = ({
+import { UnresolvedSchema, ResolvedSchema, Context } from './types'
+
+export type ResolveSchemaContext = Context & {
+  resolvers?: ResolverCandidate[]
+}
+
+export const schemaResolverFunction = ():ResolverCandidate => ([
+  value => typeof value === 'function',
+  (func, context) => func(context.value)
+])
+
+export const schemaResolverExperssion = ({
   interpreters
 }):ResolverCandidate => ([
-  (schemaValue) => (
-    isExpression(interpreters, schemaValue)
-  ),
-  (schemaExpressionOrValue, options) => {
-    const postEvaluation = evaluate({
+  value => isExpression(interpreters, value),
+  (expression, context) => {
+    const value = evaluate({
       interpreters,
-      data: {
-        $$VALUE: options.value
-      }
-    }, schemaExpressionOrValue)
+      scope: { $$VALUE: context.value }
+    }, expression)
 
     return (
-      isPlainObject(postEvaluation) ||
-      Array.isArray(postEvaluation)
+      isPlainObject(value) ||
+      Array.isArray(value)
     )
-      ? resolveSchema(postEvaluation, options)
-      : postEvaluation
+      ? resolveSchema(value, context)
+      : value
   }
 ])
 
+const OBJECT_SKIP_KEYS = ['validation']
+export const schemaResolverObject = (
+  skipKeys:string[] = OBJECT_SKIP_KEYS
+):ResolverCandidate => (
+  objectResolver((keyValue, key) => !skipKeys.includes(key))
+)
+
+export const schemaResolverArray = arrayResolver
+
+const DEFAULT_RESOLVERS = [
+  schemaResolverExperssion({ interpreters: ALL_EXPRESSIONS }),
+  schemaResolverObject(),
+  arrayResolver(),
+]
+
 export const resolveSchema = (
-  schema,
-  options: {
-    interpreters?: { [key:string]: ExpressionInterpreter },
-    value: any
-  }
-) => {
-  return nestedMap(schema, {
-    ...options,
-    resolvers: [
-      schemaExpressionResolver({
-        interpreters: options.interpreters || ALL_EXPRESSIONS
-      }),
-      objectResolver(),
-      arrayResolver(),
-    ]
-  })
-}
+  schema:UnresolvedSchema,
+  context:ResolveSchemaContext
+):ResolvedSchema => nestedMap(schema, {
+  resolvers: DEFAULT_RESOLVERS,
+  ...context
+})

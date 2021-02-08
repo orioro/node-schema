@@ -1,18 +1,62 @@
-import { isPlainObject, get } from 'lodash'
-import { cascadeFilter, test } from '@orioro/cascade'
+import { isPlainObject } from 'lodash'
 import { treeSourceNodes } from '@orioro/tree-source-nodes'
+import {
+  parallelCases,
+  allowValues
+} from '@orioro/validate'
+import {
+  parseValidationCases
+} from './parseValidationCases'
+
+// const __isExpression = v => (
+//   Array.isArray(v) &&
+//   typeof v[0] === 'string' &&
+//   v[0].startsWith('$')
+// )
+
+// const pipe = (firstFn, ...remainingFns) => (...args) => (
+//   remainingFns.reduce((res, fn) => fn(res), firstFn(...args))
+// )
+
+// const _validationExp = (validation, context) => {
+//   if (__isExpression(validation)) {
+//     return validation
+//   } else if (Array.isArray(validation)) {
+//     return parallelCases(validation)
+//   } else if (validation === null || validation === undefined) {
+//     return null
+//   } else {
+//     throw new Error(`Unrecognized validation format: ${validation}`)
+//   }
+// }
+
+// const _type = (type, validationExp) => {
+//   const typeCriteria = ['$eq', type, ['$type']]
+//   const typeError = {
+//     code: 'TYPE_ERROR',
+//     message: `Must be type ${type}`
+//   }
+
+//   return ['$if', typeCriteria, validationExp, typeError]
+// }
+
+const _required = (required = false, validationExp) => {
+  return required
+    ? validationExp
+    : allowValues([null, undefined], validationExp)
+}
 
 export const mapValidationResolver = (mapTypes = ['map']) => ([
-  (subSchema) => (
-    isPlainObject(subSchema) &&
-    isPlainObject(subSchema.properties) &&
-    mapTypes.includes(subSchema.type)
+  (schema) => (
+    isPlainObject(schema) &&
+    isPlainObject(schema.properties) &&
+    mapTypes.includes(schema.type)
   ),
-  (subSchema, context) => {
-    return Object.keys(subSchema.properties).reduce((acc, key) => {
+  (schema, context) => {
+    return Object.keys(schema.properties).reduce((acc, key) => {
       return [
         ...acc,
-        ...parseValidations(subSchema.properties[key], {
+        ...parseValidations(schema.properties[key], {
           ...context,
           path: `${context.path}.${key}`
         })
@@ -21,62 +65,115 @@ export const mapValidationResolver = (mapTypes = ['map']) => ([
   }
 ])
 
+export const listValidationResolver = (listTypes = ['list']) => ([
+  (schema) => (
+    isPlainObject(schema) &&
+    isPlainObject(schema.properties) &&
+    mapTypes.includes(schema.type)
+  ),
+  (schema, context) => {
+    /**
+     * For each item in the value, resolve thte item schema
+     * and return parsed validations for the specific path
+     */
+    
+    const itemSchema = context.itemSchema
 
-const allowNull = (type, validations) => ([
-  '$if',
-  validations,
-  [],
-  ['$notEq', null]
+    const itemValidations = context.itemSchema
+      ? context.value.reduce((acc, itemValue) => {
+          const schema = resolveSchema(itemSchema, {
+            interpreters: context.interpreters,
+            value: itemValue
+          })
+
+          return [...acc, ...parseValidations(schema, {
+
+          })]
+        }, [])
+      : []
+
+    const validationCases = parseValidationCases([
+      LIST_MIN_LENGTH,
+      LIST_MAX_LENGTH
+    ], schema)
+
+    return [{
+      path: context.path,
+      validation: _required(schema.required, parallelCases(validationCases))
+    }, ...itemValidations]
+
+
+    // return Object.keys(schema.properties).reduce((acc, key) => {
+    //   return [
+    //     ...acc,
+    //     ...parseValidations(schema.properties[key], {
+    //       ...context,
+    //       path: `${context.path}.${key}`
+    //     })
+    //   ]
+    // }, [])
+  }
 ])
 
+export const validationResolver = (types, caseResolvers) => ([
+  (schema) => (
+    isPlainObject(schema) &&
+    types.includes(schema.type)
+  ),
+  (schema, context) => {
+    const validationCases = parseValidationCases(caseResolvers, schema)
 
-const required = (type, errorMessage, validations) => ([
+    return [{
+      path: context.path,
+      validation: _required(schema.required, parallelCases(validationCases))
+    }]
+  }
+])
+
+export const stringValidationResolver = (stringTypes = ['string']) => validationResolver(
+  stringTypes,
   [
-    ['$eq', 'string', ['$type']],
-    errorMessage
-  ],
-  ...validations
-])
+    TYPE,
+    ENUM,
+    STRING_MIN_LENGTH,
+    STRING_MAX_LENGTH
+  ]
+)
 
-export const stringValidationResolver = ({ types, requiredErrorMessage } = {
-  types: ['string'],
-  requiredErrorMessage: (schema) => {
-    return typeof schema.required === 'string'
-      ? schema.required
-      : `${schema.label} is a required string`
-  }
-}) => ([
-  (subSchema) => types.includes(subSchema.type),
-  (subSchema, context) => {
+export const numberValidationResolver = (numberTypes = ['number']) => validationResolver(
+  numberTypes,
+  [
+    TYPE,
+    ENUM,
+    NUMBER_MIN,
+    NUMBER_MIN_EXCLUSIVE,
+    NUMBER_MAX,
+    NUMBER_MAX_EXCLUSIVE,
+    NUMBER_MULTIPLE_OF,
+  ]
+)
 
-    // return subSchema.required
-    //   ? required('string', requiredErrorMessage(subSchema), subSchema.validations)
-    //   : allowNull(1, 2)
-
-
-    return subSchema.required
-      ? [
-          ,
-          ...subSchema.validations
-        ]
-      : [
-
-        ]
-
-    if (subSchema.required) {
-
-
-    }
-
-  }
-])
+// export const listValidationResolver = (listTypes = ['list']) => validationResolver(
+//   listTypes,
+//   [
+//     TYPE,
+//     LIST_MIN_LENGTH,
+//     LIST_MAX_LENGTH,
+//     LIST_ITEM
+//   ]
+// )
 
 export const defaultValidationResolver = () => ([
-  (subSchema, context) => {
-    return (subSchema.validations ? subSchema.validations : []).map(validation => ({
+  (schema, context) => {
+    const validationCases = parseValidationCases([
+      TYPE,
+      ENUM
+    ], schema)
+
+    return [{
       path: context.path,
-      validation
-    }))
+      validation: _required(schema.required, parallelCases(validationCases))
+    }]
   }
 ])
 

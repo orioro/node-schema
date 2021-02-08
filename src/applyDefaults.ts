@@ -1,62 +1,79 @@
 import { isPlainObject, get } from 'lodash'
-import { nestedMap } from '@orioro/nested-map'
+import { nestedMap, ResolverCandidate } from '@orioro/nested-map'
 
-export const defaultsMapResolver = (mapTypes:string[] = ['map']) => ([
-  (subSchema) => (
-    isPlainObject(subSchema) &&
-    isPlainObject(subSchema.properties) &&
-    mapTypes.includes(subSchema.type)
+import {
+  ResolvedSchema,
+  Context
+} from './types'
+
+export const defaultsMapResolver = (
+  mapTypes:string[] = ['map']
+):ResolverCandidate => ([
+  (schema) => (
+    isPlainObject(schema) &&
+    isPlainObject(schema.properties) &&
+    mapTypes.includes(schema.type)
   ),
-  (subSchema, options) => {
-    const value = isPlainObject(options.value) ? options.value : {}
+  (schema, context) => {
+    const value = isPlainObject(context.value) ? context.value : {}
 
-    return Object.keys(subSchema.properties).reduce((acc, key) => {
+    return Object.keys(schema.properties).reduce((acc, key) => {
       return {
         ...acc,
-        [key]: applyDefaults(options, subSchema.properties[key], value[key])
+        [key]: applyDefaults(schema.properties[key], {
+          ...context,
+          value: value[key]
+        })
       }
     }, {})
   }
 ])
 
-export const defaultsListResolver = (listTypes:string[] = ['list']) => ([
-  (subSchema) => (
-    isPlainObject(subSchema) &&
-    isPlainObject(subSchema.item) &&
-    listTypes.includes(subSchema.type)
+export const defaultsListResolver = (
+  listTypes:string[] = ['list']
+):ResolverCandidate => ([
+  (schema) => (
+    isPlainObject(schema) &&
+    isPlainObject(schema.itemSchema) &&
+    listTypes.includes(schema.type)
   ),
-  (subSchema, options) => {
-    const value = Array.isArray(options.value)
-      ? options.value
-      : subSchema.default !== undefined
-        ? subSchema.default
+  (schema, context) => {
+    const value = Array.isArray(context.value)
+      ? context.value
+      : schema.default !== undefined
+        ? schema.default
         : []
 
-    return value.map(item => applyDefaults(options, subSchema.item, item))
+    return value.map(item => applyDefaults(schema.itemSchema, {
+      ...context,
+      value: item
+    }))
   }
 ])
 
 export const defaultsDefaultResolver = (defaultsByType = {
   string: '',
   number: 0
-}) => ([
-  (subSchema) => (
-    isPlainObject(subSchema) &&
-    typeof subSchema.type === 'string'
+}):ResolverCandidate => ([
+  (schema) => (
+    isPlainObject(schema) &&
+    typeof schema.type === 'string'
   ),
-  (subSchema) => subSchema.default !== undefined
-    ? subSchema.default
-    : defaultsByType[subSchema.type]
+  (schema) => schema.default !== undefined
+    ? schema.default
+    : defaultsByType[schema.type]
 ])
 
-export const applyDefaults = (options, schema, value) => {
+export const applyDefaults = (
+  schema:ResolvedSchema,
+  context:Context
+):any => {
   return nestedMap(schema, {
-    ...options,
     resolvers: [
       defaultsMapResolver(),
       defaultsListResolver(),
       defaultsDefaultResolver()
     ],
-    value
+    ...context,
   })
 }
