@@ -6,6 +6,8 @@ import {
 } from './resolveSchema'
 import { groupBy } from 'lodash'
 
+const dump = v => console.log(JSON.stringify(v, null, '  '))
+
 const cities = [
   { name: 'São Paulo', state: 'SP' },
   { name: 'Santos', state: 'SP' },
@@ -134,3 +136,131 @@ describe('resolveSchema(schema, context) - using expressions', () => {
     })
   })
 })
+
+describe('properties whose nested resolution should be skipped by default', () => {
+  test('`validation`', () => {
+
+    const smallTextValidation = [
+      [['$stringStartsWith', 'small-text:'], 'PREFIX_ERROR'],
+    ]
+
+    const mediumTextValidation = [
+      [['$stringStartsWith', 'medium-text:'], 'PREFIX_ERROR'],
+    ]
+
+    const largeTextValidation = [
+      [['$stringStartsWith', 'large-text:'], 'PREFIX_ERROR'],
+    ]
+
+    const schema = {
+      type: 'map',
+      properties: {
+        size: {
+          type: 'string',
+          enum: ['small', 'medium', 'large']
+        },
+        text: {
+          type: 'string',
+          maxLength: [
+            '$switchKey',
+            {
+              small: 100,
+              medium: 500,
+              large: 1000
+            },
+            100,
+            ['$value', 'size']
+          ],
+          validation: [
+            '$switchKey',
+            {
+              small: smallTextValidation,
+              medium: mediumTextValidation,
+              large: largeTextValidation
+            },
+            smallTextValidation,
+            ['$value', 'size']
+          ]
+        }
+      }
+    }
+
+    const expectations = [
+      [{}, 100, smallTextValidation],
+      [{ size: 'small' }, 100, smallTextValidation],
+      [{ size: 'medium' }, 500, mediumTextValidation],
+      [{ size: 'large' }, 1000, largeTextValidation],
+    ]
+
+    expectations.forEach(([input, textMaxLength, textValidation]) => {
+      const resolved = resolveSchema(schema, {
+        value: input
+      })
+
+      expect(resolved.properties.text.maxLength).toEqual(textMaxLength)
+      expect(resolved.properties.text.validation).toEqual(textValidation)
+    })
+  })
+
+  test('`itemSchema`', () => {
+
+    const schemasBySize = {
+      small: {
+        type: 'string',
+        maxLength: [
+          '$switch',
+          [
+            [['$stringStartsWith', 'prefix-1-'], 200],
+            [['$stringStartsWith', 'prefix-2-'], 300],
+            [['$stringStartsWith', 'prefix-3-'], 400],
+          ],
+          100
+        ]
+      },
+      medium: {
+        type: 'string',
+        maxLength: 500
+      },
+      large: {
+        type: 'string',
+        maxLength: 1000
+      }
+    }
+
+    const schema = {
+      type: 'map',
+      properties: {
+        size: {
+          type: 'string',
+          enum: ['small', 'medium', 'large']
+        },
+        items: {
+          type: 'list',
+          itemSchema: [
+            '$switchKey',
+            schemasBySize,
+            schemasBySize.small,
+            ['$value', 'size']
+          ]
+        }
+      }
+    }
+
+    const expectations = [
+      [{}, schemasBySize.small],
+      [{ size: 'small' }, schemasBySize.small],
+      [{ size: 'medium' }, schemasBySize.medium],
+      [{ size: 'large' }, schemasBySize.large],
+    ]
+
+    expectations.forEach(([input, result]) => {
+      const resolved = resolveSchema(schema, {
+        value: input
+      })
+      
+      expect(resolved.properties.items.itemSchema).toEqual(result)
+    })
+  })
+})
+
+

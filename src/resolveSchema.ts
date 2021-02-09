@@ -9,7 +9,9 @@ import {
 import {
   evaluate,
   isExpression,
-  ALL_EXPRESSIONS
+  ALL_EXPRESSIONS,
+
+  ExpressionInterpreter
 } from '@orioro/expression'
 
 import { UnresolvedSchema, ResolvedSchema, Context } from './types'
@@ -24,42 +26,58 @@ export const schemaResolverFunction = ():ResolverCandidate => ([
 ])
 
 const SKIP_NESTED_RESOLUTION_KEYS = [
-  'itemSchema'
+  'itemSchema',
+  'validation'
 ]
 
+type SchemaResolverExperssionOptions = {
+  interpreters?: { [key: string]: ExpressionInterpreter },
+  skipKeys?: (string[]),
+  skipKeysNested?: (string[])
+}
+
 export const schemaResolverExperssion = ({
-  interpreters
-}):ResolverCandidate => ([
-  value => isExpression(interpreters, value),
+  interpreters = ALL_EXPRESSIONS,
+  skipKeys = [],
+  skipKeysNested = SKIP_NESTED_RESOLUTION_KEYS
+}:SchemaResolverExperssionOptions = {}):ResolverCandidate => ([
+  (value, context) => (
+    skipKeys.length > 0
+      ? (
+          isExpression(interpreters, value) &&
+          !skipKeys.some(key => context.path.endsWith(key))
+        )
+      : isExpression(interpreters, value)
+  ),
   (expression, context) => {
     const value = evaluate({
       interpreters,
       scope: { $$VALUE: context.value }
     }, expression)
 
-    return (
+    const shouldResolveNested = (
       (
         isPlainObject(value) ||
         Array.isArray(value)
       ) &&
-      !SKIP_NESTED_RESOLUTION_KEYS.some(key => context.path.endsWith(key))
+      (
+        skipKeysNested.length === 0 ||
+        !skipKeysNested.some(key => context.path.endsWith(key))
+      )
     )
+
+    return shouldResolveNested
       ? resolveSchema(value, context)
       : value
   }
 ])
 
-const OBJECT_SKIP_KEYS = ['validation']
-export const schemaResolverObject = (
-  skipKeys:string[] = OBJECT_SKIP_KEYS
-):ResolverCandidate => (
-  objectResolver((keyValue, key) => !skipKeys.includes(key))
-)
+export const schemaResolverObject = objectResolver
 
 export const schemaResolverArray = arrayResolver
 
 const DEFAULT_RESOLVERS = [
-  schemaResolverExperssion({ interpreters: ALL_EXPRESSIONS }),
+  schemaResolverExperssion(),
   schemaResolverObject(),
   arrayResolver(),
 ]

@@ -41,26 +41,6 @@ export type ParseValidationsContext = Context & {
   resolvers?: NodeResolver[]
 }
 
-// const __isExpression = v => (
-//   Array.isArray(v) &&
-//   typeof v[0] === 'string' &&
-//   v[0].startsWith('$')
-// )
-
-
-
-// const _validationExp = (validation, context) => {
-//   if (__isExpression(validation)) {
-//     return validation
-//   } else if (Array.isArray(validation)) {
-//     return parallelCases(validation)
-//   } else if (validation === null || validation === undefined) {
-//     return null
-//   } else {
-//     throw new Error(`Unrecognized validation format: ${validation}`)
-//   }
-// }
-
 const _type = (
   schema:ResolvedSchema,
   validationExp:Expression
@@ -74,7 +54,10 @@ const _type = (
   return ['$if', criteria, error, validationExp]
 }
 
-const _casesValidationExp = (schema, caseResolvers) => {
+const _casesValidationExp = (
+  schema:ResolvedSchema,
+  caseResolvers
+):(Expression | null) => {
   const cases = parseValidationCases(schema, {
     resolvers: caseResolvers
   })
@@ -98,7 +81,7 @@ const _required = (
 
 const _wrapValidationExp = (
   schema:ResolvedSchema,
-  validationExp:Expression
+  validationExp:(Expression | null)
 ) => (
   fnPipe(
     _type.bind(null, schema),
@@ -139,11 +122,10 @@ export const listValidationResolver = (listTypes = ['list']) => ([
     listTypes.includes(schema.type)
   ),
   (schema, context) => {
-    /**
-     * For each item in the value, resolve thte item schema
-     * and return parsed validations for the specific path
-     */
-    
+    //
+    // For each item in the value, resolve thte item schema
+    // and return parsed validations for the specific path
+    //
     const itemSchema = schema.itemSchema
 
     const itemValidations = schema.itemSchema
@@ -173,17 +155,6 @@ export const listValidationResolver = (listTypes = ['list']) => ([
       path: context.path,
       validation: _wrapValidationExp(schema, parallelCases(cases))
     }, ...itemValidations]
-
-
-    // return Object.keys(schema.properties).reduce((acc, key) => {
-    //   return [
-    //     ...acc,
-    //     ...parseValidations(schema.properties[key], {
-    //       ...context,
-    //       path: `${context.path}.${key}`
-    //     })
-    //   ]
-    // }, [])
   }
 ])
 
@@ -224,16 +195,6 @@ export const numberValidationResolver = (numberTypes = ['number']) => validation
     NUMBER_MULTIPLE_OF
   ]
 )
-
-// export const listValidationResolver = (listTypes = ['list']) => validationResolver(
-//   listTypes,
-//   [
-//     TYPE,
-//     LIST_MIN_LENGTH,
-//     LIST_MAX_LENGTH,
-//     LIST_ITEM
-//   ]
-// )
 
 export const defaultValidationResolver = () => ([
   (schema, context) => {
