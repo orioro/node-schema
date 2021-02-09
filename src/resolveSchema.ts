@@ -23,6 +23,10 @@ export const schemaResolverFunction = ():ResolverCandidate => ([
   (func, context) => func(context.value)
 ])
 
+const SKIP_NESTED_RESOLUTION_KEYS = [
+  'itemSchema'
+]
+
 export const schemaResolverExperssion = ({
   interpreters
 }):ResolverCandidate => ([
@@ -34,8 +38,11 @@ export const schemaResolverExperssion = ({
     }, expression)
 
     return (
-      isPlainObject(value) ||
-      Array.isArray(value)
+      (
+        isPlainObject(value) ||
+        Array.isArray(value)
+      ) &&
+      !SKIP_NESTED_RESOLUTION_KEYS.some(key => context.path.endsWith(key))
     )
       ? resolveSchema(value, context)
       : value

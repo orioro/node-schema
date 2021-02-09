@@ -1471,34 +1471,34 @@
     lodash "^4.17.20"
     luxon "^1.25.0"
 
-"@orioro/expression@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@orioro/expression/-/expression-2.0.0.tgz#50bc2e09fee580544948dfbacc7d71376a97fac1"
-  integrity sha512-5uyT4h3e87BXVc3WTbkKKa6N5koe1MT417WTB3Gs/GzuHFgVR/xjta4p73Yk6nprs3lXmg7vvuAh1yLjaUPo/g==
+"@orioro/expression@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@orioro/expression/-/expression-2.2.0.tgz#d9fae27a047a15d3f4f325a2a020333160bf5330"
+  integrity sha512-mfn02hNAl9OnHqEkMwArPttxzxSzHMcfQwI0c87iUqSk5JeJmq9cA4nWQ0hesjinngvYSntMSDP+Umt9gTcoew==
   dependencies:
     lodash "^4.17.20"
     luxon "^1.25.0"
 
-"@orioro/nested-map@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@orioro/nested-map/-/nested-map-1.1.0.tgz#0f992befcceef2feea5ff58e4eb64bb9150c012a"
-  integrity sha512-1efXItZHUckYz+QT6m6ccnrRmSpXAREeXJ2vxSmG2kpcG3i1w54/u0n80tIVQeFHA4uE6+r0KJWW2P7EKsdHcQ==
+"@orioro/nested-map@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@orioro/nested-map/-/nested-map-1.2.0.tgz#5932ac15d5a70b95aa551ea879fb1e119b2fc1e1"
+  integrity sha512-B7iVqrEX7/L2MID8oXp38+/RMzaKZQ1+G8QoE/V+V3I+LZos1lmaNBhsAPjppLG4PPUMAQGrCLydq8MK3sIkKg==
   dependencies:
     "@orioro/cascade" "^3.0.0-beta.1"
     lodash "^4.17.20"
 
-"@orioro/tree-source-nodes@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@orioro/tree-source-nodes/-/tree-source-nodes-1.0.1.tgz#388c0cd66a614279efc09915b72de8885a1d2e3a"
-  integrity sha512-SQkrGwBFhSjkWNmgUNXdIOjSFACWDrhKyzT7hUiMcXAUw/IlbzAew6IOAR2tkgXSnUjUcY/3w/wo+AZzWQF8qg==
+"@orioro/tree-source-nodes@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@orioro/tree-source-nodes/-/tree-source-nodes-1.2.0.tgz#5c6c794693b8189607c752c1044c2f7eedffc960"
+  integrity sha512-ppJ8ZfctZOLOnYpHTp2BSgN4A2iclxTWak/F4v7s5PCbbmsp58YrcpbHO8K9fdRl6xM75Tp4tHOUz/SAnNluIw==
   dependencies:
     "@orioro/cascade" "^3.0.0-beta"
     lodash "^4.17.20"
 
-"@orioro/validate@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@orioro/validate/-/validate-2.0.0.tgz#157851df3a4908d5ecbc8859fb02be84f6fedbf4"
-  integrity sha512-a/SCjAshEibw/QmznKYcImQaUbELLotjFmWDzQXTaEphzBq5fclUu6HwNZY0hxsdO0gbe6nkp9sCWK6a8k+TfA==
+"@orioro/validate@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@orioro/validate/-/validate-2.1.1.tgz#60535f32583b646bb50e8b3ce13c959bfc1cfc9e"
+  integrity sha512-wWh5hurT7yqfUIp/f87a0pdqJoyc1mqW/cxAi0kO+OqXGaLK95RfyTCx5ZzwN0lXQ0VMDscmOgPmoNPThZ4vpg==
   dependencies:
     "@orioro/expression" "^1.0.0"
 

@@ -1,27 +1,50 @@
 import {
   allowValues,
-  parallelCases
+  prohibitValues,
+  parallelCases,
+  validate
 } from '@orioro/validate'
+
+import { schemaTypeExpression } from './expressions'
+
+import {
+  ALL_EXPRESSIONS
+} from '@orioro/expression'
 
 import {
   parseValidations,
   mapValidationResolver,
-  defaultValidationResolver
+  listValidationResolver,
+  defaultValidationResolver,
+  stringValidationResolver,
 } from './parseValidations'
 
-describe.skip('parseValidations', () => {
+const dump = value => console.log(JSON.stringify(value, null, '  '))
 
-  const TYPE_STR_COND = ['$eq', 'string', ['$type']]
-  const TYPE_STR_ERR = {
-    code: 'TYPE_ERROR',
-    message: 'Must be type string'
-  }
+const REQUIRED_ERROR = {
+  code: 'REQUIRED_ERROR',
+  message: 'This value is required'
+}
 
-  test('required immediate schema', () => {
+const TYPE_ERROR = {
+  code: 'TYPE_ERROR',
+  message: 'Invalid type'
+}
+
+const interpreters = {
+  ...ALL_EXPRESSIONS,
+  $schemaType: schemaTypeExpression(),
+}
+
+describe('parseValidations(schema, context) - required / optional', () => {
+  test('required', () => {
+
     const schema = {
       type: 'string',
-      required: {
-        error: TYPE_STR_ERR
+      required: true,
+      errors: {
+        required: REQUIRED_ERROR,
+        type: TYPE_ERROR
       }
     }
 
@@ -30,103 +53,204 @@ describe.skip('parseValidations', () => {
         mapValidationResolver(),
         defaultValidationResolver()
       ],
-      path: '',
+      value: undefined
     })
 
     expect(validations).toEqual([
       {
         path: '',
-        validation: ['$if', TYPE_STR_COND, null, TYPE_STR_ERR]
-      }
-    ])
-  })
-
-  test('optional immediate schema', () => {
-    const schema = {
-      type: 'string'
-    }
-
-    const validations = parseValidations(schema, {
-      resolvers: [
-        mapValidationResolver(),
-        defaultValidationResolver()
-      ],
-      path: '',
-    })
-
-    expect(validations).toEqual([
-      {
-        path: '',
-        validation: allowValues(
+        validation: prohibitValues(
           [null, undefined],
-          ['$if', TYPE_STR_COND, null, TYPE_STR_ERR]
+          REQUIRED_ERROR,
+          [
+            '$if',
+            ['$notEq', 'string', ['$schemaType']],
+            TYPE_ERROR,
+            null
+          ]
         )
       }
     ])
 
-    // expect(validations).toEqual([
-    //   {
-    //     path: '',
-    //     validation: [
-    //       ['$gte', 5, ['$stringLength']],
-    //       'It must contain at least 5 characters',
-    //     ],
-    //   }
-    // ])
+    const expectations = [
+      [null, [REQUIRED_ERROR]],
+      [undefined, [REQUIRED_ERROR]],
+      [9, [TYPE_ERROR]],
+      ['some text', null]
+    ]
+
+    expectations.forEach(([input, expected]) => {
+      expect(validate(validations[0].validation, input, { interpreters }))
+        .toEqual(expected)
+    })
   })
 
-	// test('map schema', () => {
- //    const schema = {
- //      type: 'map',
- //      properties: {
- //        key0: {
- //          type: 'string',
- //          required: 'key0 is required and must be of type string',
- //          validations: [
- //            [
- //              ['$gte', 1, ['$stringLength']],
- //              'It must contain at least 1 character',
- //            ],
- //            [
- //              ['$lte', 10, ['$stringLength']],
- //              'It must contain at most 10 characters',
- //            ]
- //          ]
- //        }
- //      }
- //    }
- //    const validations = parseValidations(schema, {
- //      resolvers: [
- //        mapValidationResolver(),
- //        defaultValidationResolver()
- //      ],
- //      path: '',
- //    })
+  test('optional', () => {
+    const schema = {
+      type: 'string',
+      errors: {
+        type: TYPE_ERROR
+      }
+    }
 
- //    // console.log(validations)
+    const validations = parseValidations(schema, {
+      resolvers: [
+        mapValidationResolver(),
+        defaultValidationResolver()
+      ],
+      value: undefined
+    })
 
- //    expect(validations).toEqual([
- //      {
- //        path: '.key0',
- //        validation: [
- //          ['$eq', 'string', ['$type']],
- //          'key0 is required and must be of type string'
- //        ]
- //      },
- //      {
- //        path: '.key0',
- //        validation: [
- //          ['$gte', 1, ['$stringLength']],
- //          'It must contain at least 1 character',
- //        ],
- //      },
- //      {
- //        path: '.key0',
- //        validation: [
- //          ['$lte', 10, ['$stringLength']],
- //          'It must contain at most 10 characters',
- //        ]
- //      }
- //    ])
-	// })
+    expect(validations).toMatchObject([
+      {
+        path: '',
+        validation: allowValues(
+          [null, undefined],
+          [
+            '$if',
+            ['$notEq', 'string', ['$schemaType']],
+            { code: 'TYPE_ERROR' },
+            null
+          ]
+        )
+      }
+    ])
+
+    const expectations = [
+      [null, null],
+      [undefined, null],
+      [9, [TYPE_ERROR]],
+      ['some text', null]
+    ]
+
+    expectations.forEach(([input, expected]) => {
+      expect(validate(validations[0].validation, input, { interpreters }))
+        .toEqual(expected)
+    })
+  })
+
+})
+
+test('string validations', () => {
+  const MIN_LENGTH_ERROR = {
+    code: 'MIN_LENGTH_ERROR',
+    message: 'Text must have at least 1 char'
+  }
+
+  const MAX_LENGTH_ERROR = {
+    code: 'MAX_LENGTH_ERROR',
+    message: 'Text must have at most 10 chars'
+  }
+
+  const PATTERN_ERROR = {
+    code: 'PATTERN_ERROR',
+    message: 'Text must match pattern'
+  }
+
+  const schema = {
+    type: 'string',
+    required: true,
+    minLength: 5,
+    maxLength: 10,
+    pattern: ['^a.+z$', 'i'],
+    errors: {
+      required: REQUIRED_ERROR,
+      type: TYPE_ERROR,
+      minLength: MIN_LENGTH_ERROR,
+      maxLength: MAX_LENGTH_ERROR,
+      pattern: PATTERN_ERROR
+    }
+  }
+
+  const validations = parseValidations(schema, {
+    value: 'Some text',
+    resolvers: [
+      stringValidationResolver(),
+      defaultValidationResolver()
+    ]
+  })
+
+  expect(validations).toEqual([
+    {
+      path: '',
+      validation: prohibitValues(
+        [null, undefined],
+        REQUIRED_ERROR,
+        [
+          '$if',
+          ['$notEq', 'string', ['$schemaType']],
+          TYPE_ERROR,
+          parallelCases([
+            [
+              ['$gte', 5, ['$stringLength']],
+              MIN_LENGTH_ERROR
+            ],
+            [
+              ['$lte', 10, ['$stringLength']],
+              MAX_LENGTH_ERROR
+            ],
+            [
+              ['$stringTest', ['^a.+z$', 'i']],
+              PATTERN_ERROR
+            ]
+          ])
+        ]
+      )
+    }
+  ])
+
+  const expectations = [
+    [null, [REQUIRED_ERROR]],
+    [undefined, [REQUIRED_ERROR]],
+    [9, [TYPE_ERROR]],
+    ['a', [MIN_LENGTH_ERROR, PATTERN_ERROR]],
+    ['abcdefghijklmnopqrstuv', [MAX_LENGTH_ERROR, PATTERN_ERROR]],
+    ['bcdefghi', [PATTERN_ERROR]],
+    ['abcdez', null],
+    ['AbcdeZ', null],
+  ]
+
+  expectations.forEach(([input, expected]) => {
+    expect(validate(validations[0].validation, input, { interpreters }))
+      .toEqual(expected)
+  })
+})
+
+describe('list validations', () => {
+  const MIN_LENGTH_ERROR = {
+    code: 'MIN_LENGTH_ERROR'
+  }
+
+  const MAX_LENGTH_ERROR = {
+    code: 'MAX_LENGTH_ERROR'
+  }
+
+  const schema = {
+    type: 'list',
+    itemSchema: {
+      type: 'string',
+      required: true,
+      minLength: 5,
+      maxLength: 10,
+      errors: {
+        required: REQUIRED_ERROR,
+        type: TYPE_ERROR,
+        minLength: MIN_LENGTH_ERROR,
+        maxLength: MAX_LENGTH_ERROR
+      }
+    }
+  }
+
+  test('', () => {
+    const validations = parseValidations(schema, {
+      value: ['123', '12345', '1234567', '123456789012345'],
+      resolvers: [
+        listValidationResolver(),
+        stringValidationResolver(),
+        defaultValidationResolver()
+      ]
+    })
+
+    expect(validations).toMatchSnapshot()
+  })
 })

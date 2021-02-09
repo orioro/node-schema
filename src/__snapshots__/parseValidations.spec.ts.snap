@@ -1,0 +1,433 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`list validations  1`] = `
+Array [
+  Object {
+    "path": "",
+    "validation": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      null,
+      Array [
+        "$if",
+        Array [
+          "$notEq",
+          "list",
+          Array [
+            "$schemaType",
+          ],
+        ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`list\`",
+        },
+        Array [
+          "$pipe",
+          Array [
+            Array [
+              "$arrayMap",
+              Array [
+                "$if",
+                Array [
+                  "$evaluate",
+                  Array [
+                    "$value",
+                    "0",
+                  ],
+                  Array [
+                    "$value",
+                    "$$PARENT_SCOPE",
+                  ],
+                ],
+                null,
+                Array [
+                  "$value",
+                  "1",
+                ],
+              ],
+              Array [],
+            ],
+            Array [
+              "$arrayFilter",
+              Array [
+                "$notEq",
+                null,
+              ],
+            ],
+          ],
+        ],
+      ],
+    ],
+  },
+  Object {
+    "path": "0",
+    "validation": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      Object {
+        "code": "REQUIRED_ERROR",
+        "message": "This value is required",
+      },
+      Array [
+        "$if",
+        Array [
+          "$notEq",
+          "string",
+          Array [
+            "$schemaType",
+          ],
+        ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Invalid type",
+        },
+        Array [
+          "$pipe",
+          Array [
+            Array [
+              "$arrayMap",
+              Array [
+                "$if",
+                Array [
+                  "$evaluate",
+                  Array [
+                    "$value",
+                    "0",
+                  ],
+                  Array [
+                    "$value",
+                    "$$PARENT_SCOPE",
+                  ],
+                ],
+                null,
+                Array [
+                  "$value",
+                  "1",
+                ],
+              ],
+              Array [
+                Array [
+                  Array [
+                    "$gte",
+                    5,
+                    Array [
+                      "$stringLength",
+                    ],
+                  ],
+                  Object {
+                    "code": "MIN_LENGTH_ERROR",
+                  },
+                ],
+                Array [
+                  Array [
+                    "$lte",
+                    10,
+                    Array [
+                      "$stringLength",
+                    ],
+                  ],
+                  Object {
+                    "code": "MAX_LENGTH_ERROR",
+                  },
+                ],
+              ],
+            ],
+            Array [
+              "$arrayFilter",
+              Array [
+                "$notEq",
+                null,
+              ],
+            ],
+          ],
+        ],
+      ],
+    ],
+  },
+  Object {
+    "path": "1",
+    "validation": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      Object {
+        "code": "REQUIRED_ERROR",
+        "message": "This value is required",
+      },
+      Array [
+        "$if",
+        Array [
+          "$notEq",
+          "string",
+          Array [
+            "$schemaType",
+          ],
+        ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Invalid type",
+        },
+        Array [
+          "$pipe",
+          Array [
+            Array [
+              "$arrayMap",
+              Array [
+                "$if",
+                Array [
+                  "$evaluate",
+                  Array [
+                    "$value",
+                    "0",
+                  ],
+                  Array [
+                    "$value",
+                    "$$PARENT_SCOPE",
+                  ],
+                ],
+                null,
+                Array [
+                  "$value",
+                  "1",
+                ],
+              ],
+              Array [
+                Array [
+                  Array [
+                    "$gte",
+                    5,
+                    Array [
+                      "$stringLength",
+                    ],
+                  ],
+                  Object {
+                    "code": "MIN_LENGTH_ERROR",
+                  },
+                ],
+                Array [
+                  Array [
+                    "$lte",
+                    10,
+                    Array [
+                      "$stringLength",
+                    ],
+                  ],
+                  Object {
+                    "code": "MAX_LENGTH_ERROR",
+                  },
+                ],
+              ],
+            ],
+            Array [
+              "$arrayFilter",
+              Array [
+                "$notEq",
+                null,
+              ],
+            ],
+          ],
+        ],
+      ],
+    ],
+  },
+  Object {
+    "path": "2",
+    "validation": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      Object {
+        "code": "REQUIRED_ERROR",
+        "message": "This value is required",
+      },
+      Array [
+        "$if",
+        Array [
+          "$notEq",
+          "string",
+          Array [
+            "$schemaType",
+          ],
+        ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Invalid type",
+        },
+        Array [
+          "$pipe",
+          Array [
+            Array [
+              "$arrayMap",
+              Array [
+                "$if",
+                Array [
+                  "$evaluate",
+                  Array [
+                    "$value",
+                    "0",
+                  ],
+                  Array [
+                    "$value",
+                    "$$PARENT_SCOPE",
+                  ],
+                ],
+                null,
+                Array [
+                  "$value",
+                  "1",
+                ],
+              ],
+              Array [
+                Array [
+                  Array [
+                    "$gte",
+                    5,
+                    Array [
+                      "$stringLength",
+                    ],
+                  ],
+                  Object {
+                    "code": "MIN_LENGTH_ERROR",
+                  },
+                ],
+                Array [
+                  Array [
+                    "$lte",
+                    10,
+                    Array [
+                      "$stringLength",
+                    ],
+                  ],
+                  Object {
+                    "code": "MAX_LENGTH_ERROR",
+                  },
+                ],
+              ],
+            ],
+            Array [
+              "$arrayFilter",
+              Array [
+                "$notEq",
+                null,
+              ],
+            ],
+          ],
+        ],
+      ],
+    ],
+  },
+  Object {
+    "path": "3",
+    "validation": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      Object {
+        "code": "REQUIRED_ERROR",
+        "message": "This value is required",
+      },
+      Array [
+        "$if",
+        Array [
+          "$notEq",
+          "string",
+          Array [
+            "$schemaType",
+          ],
+        ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Invalid type",
+        },
+        Array [
+          "$pipe",
+          Array [
+            Array [
+              "$arrayMap",
+              Array [
+                "$if",
+                Array [
+                  "$evaluate",
+                  Array [
+                    "$value",
+                    "0",
+                  ],
+                  Array [
+                    "$value",
+                    "$$PARENT_SCOPE",
+                  ],
+                ],
+                null,
+                Array [
+                  "$value",
+                  "1",
+                ],
+              ],
+              Array [
+                Array [
+                  Array [
+                    "$gte",
+                    5,
+                    Array [
+                      "$stringLength",
+                    ],
+                  ],
+                  Object {
+                    "code": "MIN_LENGTH_ERROR",
+                  },
+                ],
+                Array [
+                  Array [
+                    "$lte",
+                    10,
+                    Array [
+                      "$stringLength",
+                    ],
+                  ],
+                  Object {
+                    "code": "MAX_LENGTH_ERROR",
+                  },
+                ],
+              ],
+            ],
+            Array [
+              "$arrayFilter",
+              Array [
+                "$notEq",
+                null,
+              ],
+            ],
+          ],
+        ],
+      ],
+    ],
+  },
+]
+`;

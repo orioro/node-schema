@@ -1,12 +1,45 @@
 import { isPlainObject } from 'lodash'
-import { treeSourceNodes } from '@orioro/tree-source-nodes'
+import {
+  NodeResolver,
+  treeSourceNodes,
+  pathJoin
+} from '@orioro/tree-source-nodes'
 import {
   parallelCases,
-  allowValues
+  allowValues,
+  prohibitValues
 } from '@orioro/validate'
 import {
+  ENUM,
+  STRING_MIN_LENGTH,
+  STRING_MAX_LENGTH,
+  STRING_PATTERN,
+
+  NUMBER_MIN,
+  NUMBER_MIN_EXCLUSIVE,
+  NUMBER_MAX,
+  NUMBER_MAX_EXCLUSIVE,
+  NUMBER_MULTIPLE_OF,
+
+  LIST_MIN_LENGTH,
+  LIST_MAX_LENGTH,
+  LIST_UNIQUE_ITEMS,
+
   parseValidationCases
 } from './parseValidationCases'
+
+import { resolveSchema } from './resolveSchema'
+
+import {
+  Expression
+} from '@orioro/expression'
+
+import { getError, fnPipe } from './util'
+import { ResolvedSchema, Context } from './types'
+
+export type ParseValidationsContext = Context & {
+  resolvers?: NodeResolver[]
+}
 
 // const __isExpression = v => (
 //   Array.isArray(v) &&
@@ -14,9 +47,7 @@ import {
 //   v[0].startsWith('$')
 // )
 
-// const pipe = (firstFn, ...remainingFns) => (...args) => (
-//   remainingFns.reduce((res, fn) => fn(res), firstFn(...args))
-// )
+
 
 // const _validationExp = (validation, context) => {
 //   if (__isExpression(validation)) {
@@ -30,21 +61,50 @@ import {
 //   }
 // }
 
-// const _type = (type, validationExp) => {
-//   const typeCriteria = ['$eq', type, ['$type']]
-//   const typeError = {
-//     code: 'TYPE_ERROR',
-//     message: `Must be type ${type}`
-//   }
+const _type = (
+  schema:ResolvedSchema,
+  validationExp:Expression
+):Expression => {
+  const criteria = ['$notEq', schema.type, ['$schemaType']]
+  const error = getError(schema, 'type', {
+    code: 'TYPE_ERROR',
+    message: `Must be type \`${schema.type}\``
+  })
 
-//   return ['$if', typeCriteria, validationExp, typeError]
-// }
-
-const _required = (required = false, validationExp) => {
-  return required
-    ? validationExp
-    : allowValues([null, undefined], validationExp)
+  return ['$if', criteria, error, validationExp]
 }
+
+const _casesValidationExp = (schema, caseResolvers) => {
+  const cases = parseValidationCases(schema, {
+    resolvers: caseResolvers
+  })
+
+  return cases.length > 0
+    ? parallelCases(cases)
+    : null
+}
+
+const _required = (
+  schema:ResolvedSchema,
+  validationExp:Expression
+):Expression => (
+  Boolean(schema.required)
+    ? prohibitValues([null, undefined], getError(schema, 'required', {
+        code: 'REQUIRED_ERROR',
+        message: 'Value is required'
+      }), validationExp)
+    : allowValues([null, undefined], validationExp)
+)
+
+const _wrapValidationExp = (
+  schema:ResolvedSchema,
+  validationExp:Expression
+) => (
+  fnPipe(
+    _type.bind(null, schema),
+    _required.bind(null, schema)
+  )(validationExp)
+)
 
 export const mapValidationResolver = (mapTypes = ['map']) => ([
   (schema) => (
@@ -53,23 +113,30 @@ export const mapValidationResolver = (mapTypes = ['map']) => ([
     mapTypes.includes(schema.type)
   ),
   (schema, context) => {
+    const mapValidation = {
+      path: context.path,
+      validation: _wrapValidationExp(
+        schema,
+        _casesValidationExp(schema, [ENUM])
+      )
+    }
+
     return Object.keys(schema.properties).reduce((acc, key) => {
       return [
         ...acc,
         ...parseValidations(schema.properties[key], {
           ...context,
-          path: `${context.path}.${key}`
+          path: pathJoin(context.path, key)
         })
       ]
-    }, [])
+    }, [mapValidation])
   }
 ])
 
 export const listValidationResolver = (listTypes = ['list']) => ([
   (schema) => (
     isPlainObject(schema) &&
-    isPlainObject(schema.properties) &&
-    mapTypes.includes(schema.type)
+    listTypes.includes(schema.type)
   ),
   (schema, context) => {
     /**
@@ -77,29 +144,34 @@ export const listValidationResolver = (listTypes = ['list']) => ([
      * and return parsed validations for the specific path
      */
     
-    const itemSchema = context.itemSchema
+    const itemSchema = schema.itemSchema
 
-    const itemValidations = context.itemSchema
-      ? context.value.reduce((acc, itemValue) => {
+    const itemValidations = schema.itemSchema
+      ? context.value.reduce((acc, itemValue, index) => {
           const schema = resolveSchema(itemSchema, {
             interpreters: context.interpreters,
             value: itemValue
           })
 
           return [...acc, ...parseValidations(schema, {
-
+            ...context,
+            path: pathJoin(context.path, index)
           })]
         }, [])
       : []
 
-    const validationCases = parseValidationCases([
-      LIST_MIN_LENGTH,
-      LIST_MAX_LENGTH
-    ], schema)
+    const cases = parseValidationCases(schema, {
+      resolvers: [
+        ENUM,
+        LIST_MIN_LENGTH,
+        LIST_MAX_LENGTH,
+        LIST_UNIQUE_ITEMS
+      ]
+    })
 
     return [{
       path: context.path,
-      validation: _required(schema.required, parallelCases(validationCases))
+      validation: _wrapValidationExp(schema, parallelCases(cases))
     }, ...itemValidations]
 
 
@@ -121,11 +193,12 @@ export const validationResolver = (types, caseResolvers) => ([
     types.includes(schema.type)
   ),
   (schema, context) => {
-    const validationCases = parseValidationCases(caseResolvers, schema)
-
     return [{
       path: context.path,
-      validation: _required(schema.required, parallelCases(validationCases))
+      validation: _wrapValidationExp(
+        schema,
+        _casesValidationExp(schema, caseResolvers)
+      )
     }]
   }
 ])
@@ -133,23 +206,22 @@ export const validationResolver = (types, caseResolvers) => ([
 export const stringValidationResolver = (stringTypes = ['string']) => validationResolver(
   stringTypes,
   [
-    TYPE,
     ENUM,
     STRING_MIN_LENGTH,
-    STRING_MAX_LENGTH
+    STRING_MAX_LENGTH,
+    STRING_PATTERN
   ]
 )
 
 export const numberValidationResolver = (numberTypes = ['number']) => validationResolver(
   numberTypes,
   [
-    TYPE,
     ENUM,
     NUMBER_MIN,
     NUMBER_MIN_EXCLUSIVE,
     NUMBER_MAX,
     NUMBER_MAX_EXCLUSIVE,
-    NUMBER_MULTIPLE_OF,
+    NUMBER_MULTIPLE_OF
   ]
 )
 
@@ -165,16 +237,28 @@ export const numberValidationResolver = (numberTypes = ['number']) => validation
 
 export const defaultValidationResolver = () => ([
   (schema, context) => {
-    const validationCases = parseValidationCases([
-      TYPE,
-      ENUM
-    ], schema)
-
     return [{
       path: context.path,
-      validation: _required(schema.required, parallelCases(validationCases))
+      validation: _wrapValidationExp(
+        schema,
+        _casesValidationExp(schema, [ENUM])
+      )
     }]
   }
 ])
 
-export const parseValidations = (schema, options) => treeSourceNodes(schema, options)
+
+const DEFAULT_RESOLVERS = [
+  mapValidationResolver(),
+  listValidationResolver(),
+  stringValidationResolver(),
+  defaultValidationResolver(),
+]
+
+export const parseValidations = (
+  schema:ResolvedSchema,
+  context:ParseValidationsContext
+) => treeSourceNodes(schema, {
+  resolvers: DEFAULT_RESOLVERS,
+  ...context
+})
