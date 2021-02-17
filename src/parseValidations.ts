@@ -161,7 +161,7 @@ export const listValidationResolver = (listTypes = ['list']) => ([
   }
 ])
 
-export const validationResolver = (types, caseResolvers) => ([
+export const _validationResolver = (types, caseResolvers) => ([
   (schema) => (
     isPlainObject(schema) &&
     types.includes(schema.type)
@@ -177,7 +177,7 @@ export const validationResolver = (types, caseResolvers) => ([
   }
 ])
 
-export const stringValidationResolver = (stringTypes = ['string']) => validationResolver(
+export const stringValidationResolver = (stringTypes = ['string']) => _validationResolver(
   stringTypes,
   [
     ENUM,
@@ -187,7 +187,7 @@ export const stringValidationResolver = (stringTypes = ['string']) => validation
   ]
 )
 
-export const numberValidationResolver = (numberTypes = ['number']) => validationResolver(
+export const numberValidationResolver = (numberTypes = ['number']) => _validationResolver(
   numberTypes,
   [
     ENUM,
