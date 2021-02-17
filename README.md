@@ -22,9 +22,3 @@ yarn add @orioro/schema
   2. Validate 
 
 # API Docs
-
-{{ comments | toc }}
-
-{% for comment in comments %}{{ comment | docEntry }}
-
-{% endfor %}

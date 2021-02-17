@@ -116,6 +116,9 @@ export const mapValidationResolver = (mapTypes = ['map']) => ([
   }
 ])
 
+/**
+ * @todo - Support `items` instead of `itemSchema` and add support for tuples
+ */
 export const listValidationResolver = (listTypes = ['list']) => ([
   (schema) => (
     isPlainObject(schema) &&

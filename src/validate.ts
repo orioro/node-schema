@@ -2,7 +2,10 @@ import { get } from 'lodash'
 import { parseValidations } from './parseValidations'
 import { validate as _validate } from '@orioro/validate'
 import { ALL_EXPRESSIONS, $$VALUE, evaluate } from '@orioro/expression'
-import { schemaTypeExpression } from './expressions'
+import {
+  schemaTypeExpression,
+  GetTypeInterface
+} from './expressions'
 
 import {
   ResolvedSchema,
@@ -10,7 +13,7 @@ import {
 } from './types'
 
 type ValidateContext = Context & {
-  getType?: (value: any) => (string | void)
+  getType?: GetTypeInterface
 }
 
 export const validate = (
@@ -22,21 +25,13 @@ export const validate = (
   const interpreters = {
     ...ALL_EXPRESSIONS,
     $schemaType: schemaTypeExpression(context.getType),
-    // $schemaValidate: (context, _resolvedSchema, value = $$VALUE) => {
-    //   return validate(options, _resolvedSchema, evaluate(context, value))
-    // }
   }
-
-  // console.log(JSON.stringify(validations, null, '  '))
-
-
-  const value = context.value
 
   const result = validations.reduce((errors, { path, validation }) => {
 
     const pathValue = path === ''
-      ? value
-      : get(value, path)
+      ? context.value
+      : get(context.value, path)
 
     const result = _validate(
       validation,
@@ -44,13 +39,13 @@ export const validate = (
       { interpreters }
     )
 
-    return Array.isArray(result)
-      ? [...errors, ...result.map(result => ({
+    return result === null
+      ? errors
+      : [...errors, ...result.map(result => ({
           ...result,
           path,
           value: pathValue
         }))]
-      : errors
 
   }, [])
 

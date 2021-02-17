@@ -5,9 +5,13 @@ import {
   evaluate
 } from '@orioro/expression'
 
-const defaultGetType = () => undefined
+const defaultGetType = value => undefined
 
-export const schemaTypeExpression = (getType = defaultGetType) => (
+export type GetTypeInterface = (value: any) => (string | void)
+
+export const schemaTypeExpression = (
+  getType:GetTypeInterface = defaultGetType
+) => (
   context:EvaluationContext,
   valueExp:Expression = $$VALUE
 ) => {
@@ -26,7 +30,6 @@ export const schemaTypeExpression = (getType = defaultGetType) => (
       } else {
         return 'map'
       }
-
     } else {
       return type
     }
