@@ -43,3 +43,11 @@ export type NumberSchema = ResolvedSchema & {
   max?: number,
   maxExclusive?: number
 }
+
+export type BuiltInType =
+  | 'string'
+  | 'number'
+  | 'boolean'
+  | 'object'
+  | 'array'
+  | 'date'
