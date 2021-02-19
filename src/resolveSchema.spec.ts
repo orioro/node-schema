@@ -2,11 +2,11 @@ import {
   resolveSchema,
   schemaResolverObject,
   schemaResolverArray,
-  schemaResolverFunction
+  schemaResolverFunction,
 } from './resolveSchema'
 import { groupBy } from 'lodash'
 
-const dump = v => console.log(JSON.stringify(v, null, '  '))
+// const dump = (v) => console.log(JSON.stringify(v, null, '  '))
 
 const cities = [
   { name: 'São Paulo', state: 'SP' },
@@ -15,25 +15,25 @@ const cities = [
   { name: 'Rio de Janeiro', state: 'RJ' },
   { name: 'Angra dos Reis', state: 'RJ' },
   { name: 'Belo Horizonte', state: 'MG' },
-  { name: 'Ouro Preto', state: 'MG' }
+  { name: 'Ouro Preto', state: 'MG' },
 ]
 const states = ['SP', 'RJ', 'MG']
 const citiesByState = groupBy(cities, 'state')
 
 describe('resolveSchema(schema, value, context?) - using schemaResolverFunction', () => {
-  test('', () => {
+  test('basic', () => {
     const schema = {
       type: 'map',
       properties: {
         state: {
           type: 'string',
-          options: states
+          options: states,
         },
         city: {
           type: 'string',
-          options: value => (citiesByState[value.state] || [])
-        }
-      }
+          options: (value) => citiesByState[value.state] || [],
+        },
+      },
     }
 
     const expected = [
@@ -45,14 +45,15 @@ describe('resolveSchema(schema, value, context?) - using schemaResolverFunction'
     ]
 
     expected.forEach(([value, expectedOptions]) => {
-      expect(resolveSchema(schema, value, {
-        resolvers: [
-          schemaResolverFunction(),
-          schemaResolverObject(),
-          schemaResolverArray(),
-        ]
-      }).properties.city.options)
-      .toEqual(expectedOptions)
+      expect(
+        resolveSchema(schema, value, {
+          resolvers: [
+            schemaResolverFunction(),
+            schemaResolverObject(),
+            schemaResolverArray(),
+          ],
+        }).properties.city.options
+      ).toEqual(expectedOptions)
     })
   })
 })
@@ -64,18 +65,13 @@ describe('resolveSchema(schema, context) - using expressions', () => {
       properties: {
         state: {
           type: 'string',
-          options: states
+          options: states,
         },
         city: {
           type: 'string',
-          options: [
-            '$switchKey',
-            citiesByState,
-            [],
-            ['$value', 'state']
-          ]
-        }
-      }
+          options: ['$switchKey', citiesByState, [], ['$value', 'state']],
+        },
+      },
     }
 
     const expected = [
@@ -87,8 +83,9 @@ describe('resolveSchema(schema, context) - using expressions', () => {
     ]
 
     expected.forEach(([value, expectedOptions]) => {
-      expect(resolveSchema(schema, value).properties.city.options)
-        .toEqual(expectedOptions)
+      expect(resolveSchema(schema, value).properties.city.options).toEqual(
+        expectedOptions
+      )
     })
   })
 
@@ -103,42 +100,50 @@ describe('resolveSchema(schema, context) - using expressions', () => {
           options: [
             '$switchKey',
             {
-              valueA: ['A-OPT1', 'A-OPT2', ['$stringConcat', '-A-OPT3', ['$value', 'key1']]],
+              valueA: [
+                'A-OPT1',
+                'A-OPT2',
+                ['$stringConcat', '-A-OPT3', ['$value', 'key1']],
+              ],
               valueB: [
                 '$arrayMap',
-                ['$stringConcat', ['$value'], ['$value', '$$PARENT_SCOPE.$$VALUE.key1']],
-                ['-B-OPT1', '-B-OPT2']
+                [
+                  '$stringConcat',
+                  ['$value'],
+                  ['$value', '$$PARENT_SCOPE.$$VALUE.key1'],
+                ],
+                ['-B-OPT1', '-B-OPT2'],
               ],
             },
             [],
-            ['$value', 'key2']
-          ]
-        }
-      }
+            ['$value', 'key2'],
+          ],
+        },
+      },
     }
 
     const expected = [
       [{}, []],
       [
         { key1: 'key1-value', key2: 'valueA' },
-        ['A-OPT1', 'A-OPT2', 'key1-value-A-OPT3']
+        ['A-OPT1', 'A-OPT2', 'key1-value-A-OPT3'],
       ],
       [
         { key1: 'key1-value', key2: 'valueB' },
-        ['key1-value-B-OPT1', 'key1-value-B-OPT2']
-      ]
+        ['key1-value-B-OPT1', 'key1-value-B-OPT2'],
+      ],
     ]
 
     expected.forEach(([input, expectedOptions]) => {
-      expect(resolveSchema(schema, input).properties.key3.options)
-        .toEqual(expectedOptions)
+      expect(resolveSchema(schema, input).properties.key3.options).toEqual(
+        expectedOptions
+      )
     })
   })
 })
 
 describe('properties whose nested resolution should be skipped by default', () => {
   test('`validation`', () => {
-
     const smallTextValidation = [
       [['$stringStartsWith', 'small-text:'], 'PREFIX_ERROR'],
     ]
@@ -156,7 +161,7 @@ describe('properties whose nested resolution should be skipped by default', () =
       properties: {
         size: {
           type: 'string',
-          enum: ['small', 'medium', 'large']
+          enum: ['small', 'medium', 'large'],
         },
         text: {
           type: 'string',
@@ -165,23 +170,23 @@ describe('properties whose nested resolution should be skipped by default', () =
             {
               small: 100,
               medium: 500,
-              large: 1000
+              large: 1000,
             },
             100,
-            ['$value', 'size']
+            ['$value', 'size'],
           ],
           validation: [
             '$switchKey',
             {
               small: smallTextValidation,
               medium: mediumTextValidation,
-              large: largeTextValidation
+              large: largeTextValidation,
             },
             smallTextValidation,
-            ['$value', 'size']
-          ]
-        }
-      }
+            ['$value', 'size'],
+          ],
+        },
+      },
     }
 
     const expectations = [
@@ -200,7 +205,6 @@ describe('properties whose nested resolution should be skipped by default', () =
   })
 
   test('`itemSchema`', () => {
-
     const schemasBySize = {
       small: {
         type: 'string',
@@ -211,17 +215,17 @@ describe('properties whose nested resolution should be skipped by default', () =
             [['$stringStartsWith', 'prefix-2-'], 300],
             [['$stringStartsWith', 'prefix-3-'], 400],
           ],
-          100
-        ]
+          100,
+        ],
       },
       medium: {
         type: 'string',
-        maxLength: 500
+        maxLength: 500,
       },
       large: {
         type: 'string',
-        maxLength: 1000
-      }
+        maxLength: 1000,
+      },
     }
 
     const schema = {
@@ -229,7 +233,7 @@ describe('properties whose nested resolution should be skipped by default', () =
       properties: {
         size: {
           type: 'string',
-          enum: ['small', 'medium', 'large']
+          enum: ['small', 'medium', 'large'],
         },
         items: {
           type: 'list',
@@ -237,10 +241,10 @@ describe('properties whose nested resolution should be skipped by default', () =
             '$switchKey',
             schemasBySize,
             schemasBySize.small,
-            ['$value', 'size']
-          ]
-        }
-      }
+            ['$value', 'size'],
+          ],
+        },
+      },
     }
 
     const expectations = [
@@ -252,7 +256,7 @@ describe('properties whose nested resolution should be skipped by default', () =
 
     expectations.forEach(([input, result]) => {
       const resolved = resolveSchema(schema, input)
-      
+
       expect(resolved.properties.items.itemSchema).toEqual(result)
     })
   })

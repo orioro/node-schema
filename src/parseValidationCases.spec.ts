@@ -1,31 +1,19 @@
-import {
-  ENUM,
-  parseValidationCases
-} from './parseValidationCases'
+import { ENUM, parseValidationCases } from './parseValidationCases'
 
 describe('common', () => {
   test('ENUM', () => {
     const schema = {
       type: 'string',
-      enum: ['A', 'B', 'C']
+      enum: ['A', 'B', 'C'],
     }
-    const cases = parseValidationCases(schema, [
-      ENUM
-    ])
+    const cases = parseValidationCases(schema, [ENUM])
 
     expect(cases).toMatchObject([
-      [
-        ['$in', ['A', 'B', 'C']],
-        { code: 'ENUM_ERROR' }
-      ]
+      [['$in', ['A', 'B', 'C']], { code: 'ENUM_ERROR' }],
     ])
   })
 })
 
-test('string', () => {
+test.skip('string', () => {}) // eslint-disable-line
 
-})
-
-test('number', () => {
-
-})
+test.skip('number', () => {}) // eslint-disable-line

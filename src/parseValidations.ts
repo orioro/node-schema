@@ -1,127 +1,115 @@
 import { isPlainObject } from 'lodash'
+import { Alternative } from '@orioro/cascade'
 import {
   NodeResolver,
   treeSourceNodes,
-  pathJoin
+  pathJoin,
 } from '@orioro/tree-source-nodes'
-import {
-  parallelCases,
-  allowValues,
-  prohibitValues
-} from '@orioro/validate'
+import { parallelCases, allowValues, prohibitValues } from '@orioro/validate'
 import {
   ENUM,
   STRING_MIN_LENGTH,
   STRING_MAX_LENGTH,
   STRING_PATTERN,
-
   NUMBER_MIN,
   NUMBER_MIN_EXCLUSIVE,
   NUMBER_MAX,
   NUMBER_MAX_EXCLUSIVE,
   NUMBER_MULTIPLE_OF,
-
   LIST_MIN_LENGTH,
   LIST_MAX_LENGTH,
   LIST_UNIQUE_ITEMS,
-
-  parseValidationCases
+  parseValidationCases,
 } from './parseValidationCases'
 
 import { resolveSchema } from './resolveSchema'
 
-import {
-  Expression
-} from '@orioro/expression'
+import { Expression } from '@orioro/expression'
 
 import { getError, fnPipe } from './util'
-import { ResolvedSchema, Context } from './types'
+import { ResolvedSchema, Context, ValidationSpec } from './types'
 
 export type ParseValidationsContext = Context & {
   resolvers?: NodeResolver[]
 }
 
 const _type = (
-  schema:ResolvedSchema,
-  validationExp:Expression
-):Expression => {
+  schema: ResolvedSchema,
+  validationExp: Expression
+): Expression => {
   const criteria = ['$notEq', schema.type, ['$schemaType']]
   const error = getError(schema, 'type', {
     code: 'TYPE_ERROR',
-    message: `Must be type \`${schema.type}\``
+    message: `Must be type \`${schema.type}\``,
   })
 
   return ['$if', criteria, error, validationExp]
 }
 
 const _casesValidationExp = (
-  schema:ResolvedSchema,
+  schema: ResolvedSchema,
   caseResolvers
-):(Expression | null) => {
+): Expression | null => {
   const cases = parseValidationCases(schema, caseResolvers)
 
-  return cases.length > 0
-    ? parallelCases(cases)
-    : null
+  return cases.length > 0 ? parallelCases(cases) : null
 }
 
 const _required = (
-  schema:ResolvedSchema,
-  validationExp:Expression
-):Expression => (
-  Boolean(schema.required)
-    ? prohibitValues([null, undefined], getError(schema, 'required', {
-        code: 'REQUIRED_ERROR',
-        message: 'Value is required'
-      }), validationExp)
+  schema: ResolvedSchema,
+  validationExp: Expression
+): Expression =>
+  schema.required
+    ? prohibitValues(
+        [null, undefined],
+        getError(schema, 'required', {
+          code: 'REQUIRED_ERROR',
+          message: 'Value is required',
+        }),
+        validationExp
+      )
     : allowValues([null, undefined], validationExp)
-)
 
 const _wrapValidationExp = (
-  schema:ResolvedSchema,
-  validationExp:(Expression | null)
-) => (
-  fnPipe(
-    _type.bind(null, schema),
-    _required.bind(null, schema)
-  )(validationExp)
-)
+  schema: ResolvedSchema,
+  validationExp: Expression | null
+) =>
+  fnPipe(_type.bind(null, schema), _required.bind(null, schema))(validationExp)
 
-export const mapValidationResolver = (mapTypes = ['map']) => ([
-  (schema) => (
+export const mapValidationResolver = (mapTypes = ['map']): Alternative => [
+  (schema) =>
     isPlainObject(schema) &&
     isPlainObject(schema.properties) &&
-    mapTypes.includes(schema.type)
-  ),
+    mapTypes.includes(schema.type),
   (schema, context) => {
     const mapValidation = {
       path: context.path,
       validation: _wrapValidationExp(
         schema,
         _casesValidationExp(schema, [ENUM])
-      )
+      ),
     }
 
-    return Object.keys(schema.properties).reduce((acc, key) => {
-      return [
-        ...acc,
-        ...parseValidations(schema.properties[key], context.value, {
-          ...context,
-          path: pathJoin(context.path, key)
-        })
-      ]
-    }, [mapValidation])
-  }
-])
+    return Object.keys(schema.properties).reduce(
+      (acc, key) => {
+        return [
+          ...acc,
+          ...parseValidations(schema.properties[key], context.value, {
+            ...context,
+            path: pathJoin(context.path, key),
+          }),
+        ]
+      },
+      [mapValidation]
+    )
+  },
+]
 
 /**
  * @todo - Support `items` instead of `itemSchema` and add support for tuples
  */
-export const listValidationResolver = (listTypes = ['list']) => ([
-  (schema) => (
-    isPlainObject(schema) &&
-    listTypes.includes(schema.type)
-  ),
+export const listValidationResolver = (listTypes = ['list']): Alternative => [
+  (schema) => isPlainObject(schema) && listTypes.includes(schema.type),
   (schema, context) => {
     //
     // For each item in the value, resolve thte item schema
@@ -133,13 +121,16 @@ export const listValidationResolver = (listTypes = ['list']) => ([
       ? context.value.reduce((acc, itemValue, index) => {
           const schema = resolveSchema(itemSchema, {
             interpreters: context.interpreters,
-            value: itemValue
+            value: itemValue,
           })
 
-          return [...acc, ...parseValidations(schema, context.value, {
-            ...context,
-            path: pathJoin(context.path, index)
-          })]
+          return [
+            ...acc,
+            ...parseValidations(schema, context.value, {
+              ...context,
+              path: pathJoin(context.path, index),
+            }),
+          ]
         }, [])
       : []
 
@@ -147,66 +138,72 @@ export const listValidationResolver = (listTypes = ['list']) => ([
       ENUM,
       LIST_MIN_LENGTH,
       LIST_MAX_LENGTH,
-      LIST_UNIQUE_ITEMS
+      LIST_UNIQUE_ITEMS,
     ])
 
-    return [{
-      path: context.path,
-      validation: _wrapValidationExp(schema, parallelCases(cases))
-    }, ...itemValidations]
-  }
-])
+    return [
+      {
+        path: context.path,
+        validation: _wrapValidationExp(schema, parallelCases(cases)),
+      },
+      ...itemValidations,
+    ]
+  },
+]
 
-export const _validationResolver = (types, caseResolvers) => ([
-  (schema) => (
-    isPlainObject(schema) &&
-    types.includes(schema.type)
-  ),
+export const _validationResolver = (
+  types: string[],
+  caseResolvers: Alternative[]
+): Alternative => [
+  (schema) => isPlainObject(schema) && types.includes(schema.type),
   (schema, context) => {
-    return [{
-      path: context.path,
-      validation: _wrapValidationExp(
-        schema,
-        _casesValidationExp(schema, caseResolvers)
-      )
-    }]
-  }
-])
+    return [
+      {
+        path: context.path,
+        validation: _wrapValidationExp(
+          schema,
+          _casesValidationExp(schema, caseResolvers)
+        ),
+      },
+    ]
+  },
+]
 
-export const stringValidationResolver = (stringTypes = ['string']) => _validationResolver(
-  stringTypes,
-  [
+export const stringValidationResolver = (
+  stringTypes = ['string']
+): Alternative =>
+  _validationResolver(stringTypes, [
     ENUM,
     STRING_MIN_LENGTH,
     STRING_MAX_LENGTH,
-    STRING_PATTERN
-  ]
-)
+    STRING_PATTERN,
+  ])
 
-export const numberValidationResolver = (numberTypes = ['number']) => _validationResolver(
-  numberTypes,
-  [
+export const numberValidationResolver = (
+  numberTypes = ['number']
+): Alternative =>
+  _validationResolver(numberTypes, [
     ENUM,
     NUMBER_MIN,
     NUMBER_MIN_EXCLUSIVE,
     NUMBER_MAX,
     NUMBER_MAX_EXCLUSIVE,
-    NUMBER_MULTIPLE_OF
-  ]
-)
+    NUMBER_MULTIPLE_OF,
+  ])
 
-export const defaultValidationResolver = () => ([
+export const defaultValidationResolver = (): Alternative => [
   (schema, context) => {
-    return [{
-      path: context.path,
-      validation: _wrapValidationExp(
-        schema,
-        _casesValidationExp(schema, [ENUM])
-      )
-    }]
-  }
-])
-
+    return [
+      {
+        path: context.path,
+        validation: _wrapValidationExp(
+          schema,
+          _casesValidationExp(schema, [ENUM])
+        ),
+      },
+    ]
+  },
+]
 
 const DEFAULT_RESOLVERS = [
   mapValidationResolver(),
@@ -219,11 +216,12 @@ const DEFAULT_RESOLVERS = [
  * @todo parseValidations substitute treeSourceNodes for treeCollectNodes
  */
 export const parseValidations = (
-  schema:ResolvedSchema,
-  value:any,
-  context:ParseValidationsContext = {}
-) => treeSourceNodes(schema, {
-  resolvers: DEFAULT_RESOLVERS,
-  ...context,
-  value
-})
+  schema: ResolvedSchema,
+  value: any, // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
+  context: ParseValidationsContext = {}
+): ValidationSpec[] =>
+  treeSourceNodes(schema, {
+    resolvers: DEFAULT_RESOLVERS,
+    ...context,
+    value,
+  }) as ValidationSpec[]

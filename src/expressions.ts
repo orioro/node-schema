@@ -1,19 +1,20 @@
 import {
   EvaluationContext,
+  ExpressionInterpreter,
   Expression,
   $$VALUE,
-  evaluate
+  evaluate,
 } from '@orioro/expression'
 
-const defaultGetType = value => undefined
+const defaultGetType = (value) => undefined // eslint-disable-line @typescript-eslint/no-unused-vars
 
-export type GetTypeInterface = (value: any) => (string | void)
+export type GetTypeInterface = (value: any) => string | void
 
 export const schemaTypeExpression = (
-  getType:GetTypeInterface = defaultGetType
-) => (
-  context:EvaluationContext,
-  valueExp:Expression = $$VALUE
+  getType: GetTypeInterface = defaultGetType
+): ExpressionInterpreter => (
+  context: EvaluationContext,
+  valueExp: Expression = $$VALUE
 ) => {
   const value = evaluate(context, valueExp)
   let type = getType(value)
@@ -21,7 +22,6 @@ export const schemaTypeExpression = (
   if (typeof type === 'string') {
     return type
   } else {
-
     type = typeof value
 
     if (type === 'object') {

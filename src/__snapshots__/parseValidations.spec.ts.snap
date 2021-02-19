@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`list validations  1`] = `
+exports[`list validations basic 1`] = `
 Array [
   Object {
     "path": "",

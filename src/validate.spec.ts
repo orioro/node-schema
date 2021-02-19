@@ -1,29 +1,27 @@
 import { validate } from './validate'
 
-import { get } from 'lodash'
-
-const dump = value => console.log(JSON.stringify(value, null, '  '))
+// const dump = (value) => console.log(JSON.stringify(value, null, '  '))
 
 const REQUIRED_ERROR = {
   code: 'REQUIRED_ERROR',
-  message: 'This value is required'
+  message: 'This value is required',
 }
 
 const TYPE_ERROR = {
   code: 'TYPE_ERROR',
-  message: 'Invalid type'
+  message: 'Invalid type',
 }
 
 const MIN_LENGTH_ERROR = {
-  code: 'MIN_LENGTH_ERROR'
+  code: 'MIN_LENGTH_ERROR',
 }
 
 const MAX_LENGTH_ERROR = {
-  code: 'MAX_LENGTH_ERROR'
+  code: 'MAX_LENGTH_ERROR',
 }
 
 const PATTERN_ERROR = {
-  code: 'PATTERN_ERROR'
+  code: 'PATTERN_ERROR',
 }
 
 describe('type: string', () => {
@@ -33,8 +31,8 @@ describe('type: string', () => {
       required: true,
       errors: {
         required: REQUIRED_ERROR,
-        type: TYPE_ERROR
-      }
+        type: TYPE_ERROR,
+      },
     }
 
     const expectations = [
@@ -46,15 +44,16 @@ describe('type: string', () => {
 
     expectations.forEach(([input, result]) => {
       if (typeof result === 'object' && result !== null) {
+        // eslint-disable-next-line jest/no-conditional-expect
         expect(validate(schema, input)).toMatchObject(result)
       } else {
+        // eslint-disable-next-line jest/no-conditional-expect
         expect(validate(schema, input)).toEqual(result)
       }
     })
   })
 
   test('with string special validations', () => {
-
     const schema = {
       type: 'string',
       required: true,
@@ -67,8 +66,8 @@ describe('type: string', () => {
         type: TYPE_ERROR,
         minLength: MIN_LENGTH_ERROR,
         maxLength: MAX_LENGTH_ERROR,
-        pattern: PATTERN_ERROR
-      }
+        pattern: PATTERN_ERROR,
+      },
     }
 
     const expectations = [
@@ -82,8 +81,10 @@ describe('type: string', () => {
 
     expectations.forEach(([input, result]) => {
       if (typeof result === 'object' && result !== null) {
+        // eslint-disable-next-line jest/no-conditional-expect
         expect(validate(schema, input)).toMatchObject(result)
       } else {
+        // eslint-disable-next-line jest/no-conditional-expect
         expect(validate(schema, input)).toEqual(result)
       }
     })
@@ -93,7 +94,7 @@ describe('type: string', () => {
 describe('type: map - 1', () => {
   const errors = {
     required: REQUIRED_ERROR,
-    type: TYPE_ERROR
+    type: TYPE_ERROR,
   }
 
   const schema = {
@@ -102,23 +103,23 @@ describe('type: map - 1', () => {
       givenName: {
         type: 'string',
         required: true,
-        errors
+        errors,
       },
       familyName: {
         type: 'string',
-        errors
+        errors,
       },
       role: {
         type: 'string',
         required: true,
         enum: ['passenger', 'driver'],
-        errors
+        errors,
       },
       age: {
         type: 'number',
         required: true,
-        errors
-      }
+        errors,
+      },
     },
     validation: [
       [
@@ -126,20 +127,22 @@ describe('type: map - 1', () => {
           '$if',
           ['$eq', 'driver', ['$value', 'role']],
           ['$gte', 18, ['$value', 'age']],
-          true
+          true,
         ],
-        'DRIVER_MIN_AGE_18'
-      ]
-    ]
+        'DRIVER_MIN_AGE_18',
+      ],
+    ],
   }
 
   test('no error', () => {
-    expect(validate(schema, {
-      givenName: 'João',
-      familyName: 'Moreira',
-      role: 'driver',
-      age: 20
-    })).toEqual(null)
+    expect(
+      validate(schema, {
+        givenName: 'João',
+        familyName: 'Moreira',
+        role: 'driver',
+        age: 20,
+      })
+    ).toEqual(null)
   })
 
   test('REQUIRED_ERROR', () => {
@@ -147,18 +150,18 @@ describe('type: map - 1', () => {
       {
         ...REQUIRED_ERROR,
         path: 'givenName',
-        value: undefined
+        value: undefined,
       },
       {
         ...REQUIRED_ERROR,
         path: 'role',
-        value: undefined
+        value: undefined,
       },
       {
         ...REQUIRED_ERROR,
         path: 'age',
-        value: undefined
-      }
+        value: undefined,
+      },
     ])
   })
 
@@ -166,20 +169,20 @@ describe('type: map - 1', () => {
     const value = {
       familyName: 'Moreira',
       role: 'driver',
-      age: 15
+      age: 15,
     }
 
     expect(validate(schema, value)).toEqual([
       {
         code: 'DRIVER_MIN_AGE_18',
         path: '',
-        value
+        value,
       },
       {
         ...REQUIRED_ERROR,
         path: 'givenName',
-        value: undefined
-      }
+        value: undefined,
+      },
     ])
   })
 })
@@ -196,49 +199,41 @@ describe('type: list - 1', () => {
         required: REQUIRED_ERROR,
         type: TYPE_ERROR,
         minLength: MIN_LENGTH_ERROR,
-        maxLength: MAX_LENGTH_ERROR
-      }
-    }
+        maxLength: MAX_LENGTH_ERROR,
+      },
+    },
   }
 
-  test('', () => {
-    const value = [
-      '123',
-      '12345678',
-      undefined,
-      null,
-      '12345678901234567890',
-    ]
+  test('basic', () => {
+    const value = ['123', '12345678', undefined, null, '12345678901234567890']
 
     const result = validate(schema, value, {
-      getType: value => {
-        return Array.isArray(value)
-          ? 'list'
-          : undefined
-      }
+      getType: (value) => {
+        return Array.isArray(value) ? 'list' : undefined
+      },
     })
 
     expect(result).toEqual([
       {
         ...MIN_LENGTH_ERROR,
         path: '0',
-        value: '123'
+        value: '123',
       },
       {
         ...REQUIRED_ERROR,
         path: '2',
-        value: undefined
+        value: undefined,
       },
       {
         ...REQUIRED_ERROR,
         path: '3',
-        value: null
+        value: null,
       },
       {
         ...MAX_LENGTH_ERROR,
         path: '4',
-        value: '12345678901234567890'
-      }
+        value: '12345678901234567890',
+      },
     ])
   })
 })
