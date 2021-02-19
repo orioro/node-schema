@@ -38,53 +38,28 @@ export const STRING_MAX_LENGTH: Alternative = [
   ],
 ]
 
-export const STRING_PATTERN: Alternative = [
-  (schema: ResolvedSchema): boolean =>
-    typeof schema.pattern === 'string' || Array.isArray(schema.pattern),
-  (schema: ResolvedSchema): ValidationCase => [
-    ['$stringTest', schema.pattern],
-    getError(schema, 'pattern', {
-      code: 'STRING_PATTERN_ERROR',
-    }),
-  ],
-]
-
 export const NUMBER_MIN: Alternative = [
-  (schema: ResolvedSchema): boolean => typeof schema.min === 'number',
+  (schema: ResolvedSchema): boolean =>
+    typeof schema.min === 'number' || typeof schema.minExclusive === 'number',
   (schema: ResolvedSchema): ValidationCase => [
-    ['$gte', schema.min],
+    typeof schema.minExclusive === 'number'
+      ? ['$gt', schema.minExclusive]
+      : ['$gte', schema.min],
     getError(schema, 'min', {
       code: 'NUMBER_MIN_ERROR',
     }),
   ],
 ]
 
-export const NUMBER_MIN_EXCLUSIVE: Alternative = [
-  (schema: ResolvedSchema): boolean => typeof schema.minExclusive === 'number',
-  (schema: ResolvedSchema): ValidationCase => [
-    ['$gt', schema.minExclusive],
-    getError(schema, 'minExclusive', {
-      code: 'NUMBER_MIN_EXCLUSIVE_ERROR',
-    }),
-  ],
-]
-
 export const NUMBER_MAX: Alternative = [
-  (schema: ResolvedSchema): boolean => typeof schema.max === 'number',
+  (schema: ResolvedSchema): boolean =>
+    typeof schema.max === 'number' || typeof schema.maxExclusive === 'number',
   (schema: ResolvedSchema): ValidationCase => [
-    ['$lte', schema.max],
+    typeof schema.maxExclusive === 'number'
+      ? ['$lt', schema.maxExclusive]
+      : ['$lte', schema.max],
     getError(schema, 'max', {
       code: 'NUMBER_MAX_ERROR',
-    }),
-  ],
-]
-
-export const NUMBER_MAX_EXCLUSIVE: Alternative = [
-  (schema: ResolvedSchema): boolean => typeof schema.maxExclusive === 'number',
-  (schema: ResolvedSchema): ValidationCase => [
-    ['$lt', schema.maxExclusive],
-    getError(schema, 'maxExclusive', {
-      code: 'NUMBER_MAX_EXCLUSIVE_ERROR',
     }),
   ],
 ]
@@ -99,27 +74,27 @@ export const NUMBER_MULTIPLE_OF: Alternative = [
   ],
 ]
 
-export const LIST_MIN_LENGTH: Alternative = [
+export const ARRAY_MIN_LENGTH: Alternative = [
   (schema: ResolvedSchema): boolean => typeof schema.minLength === 'number',
   (schema: ResolvedSchema): ValidationCase => [
     ['$gte', schema.minLength, ['$arrayLength']],
     getError(schema, 'minLength', {
-      code: 'LIST_MIN_LENGTH_ERROR',
+      code: 'ARRAY_MIN_LENGTH_ERROR',
     }),
   ],
 ]
 
-export const LIST_MAX_LENGTH: Alternative = [
+export const ARRAY_MAX_LENGTH: Alternative = [
   (schema: ResolvedSchema): boolean => typeof schema.maxLength === 'number',
   (schema: ResolvedSchema): ValidationCase => [
     ['$lte', schema.maxLength, ['$arrayLength']],
     getError(schema, 'maxLength', {
-      code: 'LIST_MAX_LENGTH_ERROR',
+      code: 'ARRAY_MAX_LENGTH_ERROR',
     }),
   ],
 ]
 
-export const LIST_UNIQUE_ITEMS: Alternative = [
+export const ARRAY_UNIQUE_ITEMS: Alternative = [
   (schema: ResolvedSchema): boolean => Boolean(schema.uniqueItems),
   (schema: ResolvedSchema): ValidationCase => [
     [
@@ -127,11 +102,16 @@ export const LIST_UNIQUE_ITEMS: Alternative = [
       [
         '$eq',
         ['$value', '$$INDEX'],
-        ['$arrayIndexOf', ['$value', '$$VALUE'], ['$value', '$$ARRAY']],
+        [
+          '$arrayFindIndex',
+          ['$eq', ['$value', '$$PARENT_SCOPE.$$VALUE']],
+          ['$value', '$$ARRAY'],
+        ],
+        // ['$arrayIndexOf', ['$value', '$$VALUE'], ['$value', '$$ARRAY']],
       ],
     ],
     getError(schema, 'uniqueItems', {
-      code: 'LIST_UNIQUE_ITEMS_ERROR',
+      code: 'ARRAY_UNIQUE_ITEMS_ERROR',
     }),
   ],
 ]

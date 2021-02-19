@@ -23,7 +23,7 @@ const citiesByState = groupBy(cities, 'state')
 describe('resolveSchema(schema, value, context?) - using schemaResolverFunction', () => {
   test('basic', () => {
     const schema = {
-      type: 'map',
+      type: 'object',
       properties: {
         state: {
           type: 'string',
@@ -61,7 +61,7 @@ describe('resolveSchema(schema, value, context?) - using schemaResolverFunction'
 describe('resolveSchema(schema, context) - using expressions', () => {
   test('example: conditional options', () => {
     const schema = {
-      type: 'map',
+      type: 'object',
       properties: {
         state: {
           type: 'string',
@@ -91,7 +91,7 @@ describe('resolveSchema(schema, context) - using expressions', () => {
 
   test('nested option resolution', () => {
     const schema = {
-      type: 'map',
+      type: 'object',
       properties: {
         key1: { type: 'string' },
         key2: { type: 'string' },
@@ -157,7 +157,7 @@ describe('properties whose nested resolution should be skipped by default', () =
     ]
 
     const schema = {
-      type: 'map',
+      type: 'object',
       properties: {
         size: {
           type: 'string',
@@ -229,14 +229,14 @@ describe('properties whose nested resolution should be skipped by default', () =
     }
 
     const schema = {
-      type: 'map',
+      type: 'object',
       properties: {
         size: {
           type: 'string',
           enum: ['small', 'medium', 'large'],
         },
         items: {
-          type: 'list',
+          type: 'array',
           itemSchema: [
             '$switchKey',
             schemasBySize,

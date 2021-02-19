@@ -1485,7 +1485,7 @@
   resolved "https://registry.yarnpkg.com/@orioro/cascade/-/cascade-3.0.0-beta.1.tgz#3ca74a004166ee5e6b8818d5b987a3c79d8e6ca2"
   integrity sha512-ARB4BQ8TQvugNbeOjF3EsfeBRhIvET1lKisk3+W3CDSNPOrtc7bdSxoe0VxWgoIaSsFt/trHvwpQFrCrTH5gDQ==
 
-"@orioro/expression@^1.0.0", "@orioro/expression@^1.0.0-alpha.4":
+"@orioro/expression@^1.0.0-alpha.4":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@orioro/expression/-/expression-1.0.0.tgz#34927e804079ea2d49c6dd62de3421d830628192"
   integrity sha512-nHL5rMih146PmFXkNDHMi8iDnT16czValapwewn4mh41dbvDje2Jt1JxJwfC/ombDol+GZ+A4waMJC6hjkGgeA==
@@ -1494,11 +1494,12 @@
     lodash "^4.17.20"
     luxon "^1.25.0"
 
-"@orioro/expression@^2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@orioro/expression/-/expression-2.2.0.tgz#d9fae27a047a15d3f4f325a2a020333160bf5330"
-  integrity sha512-mfn02hNAl9OnHqEkMwArPttxzxSzHMcfQwI0c87iUqSk5JeJmq9cA4nWQ0hesjinngvYSntMSDP+Umt9gTcoew==
+"@orioro/expression@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@orioro/expression/-/expression-3.0.0.tgz#639c10b3374c1727bb3c2f3a9e5c9da188ac34fe"
+  integrity sha512-jxIXXCrsaXtTc3ANiJ7tQ88kqEd1AybGIaQeYV3eEM+ysh/rtjYGzGUyUfs0vk1+HjlRq1XBh7k+1f9LUVa4Ww==
   dependencies:
+    "@orioro/validate-type" "^1.1.0"
     lodash "^4.17.20"
     luxon "^1.25.0"
 
@@ -1536,12 +1537,17 @@
     "@orioro/cascade" "^3.0.0-beta"
     lodash "^4.17.20"
 
-"@orioro/validate@^2.1.1":
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@orioro/validate/-/validate-2.1.1.tgz#60535f32583b646bb50e8b3ce13c959bfc1cfc9e"
-  integrity sha512-wWh5hurT7yqfUIp/f87a0pdqJoyc1mqW/cxAi0kO+OqXGaLK95RfyTCx5ZzwN0lXQ0VMDscmOgPmoNPThZ4vpg==
+"@orioro/validate-type@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@orioro/validate-type/-/validate-type-1.1.0.tgz#119664d989b983c34f0f2f24d8df7cc686827fbc"
+  integrity sha512-9nPbDMnTbbGBz/UaWUQs4FNOa4a673Rnv2DxXkqNbu2IpsKTSTZqBVEkmWyqr9/MpprmRQG9X7fOec1YoTqweg==
+
+"@orioro/validate@^2.1.2":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@orioro/validate/-/validate-2.1.2.tgz#7ef861651483af6a003acab4656d89340ce09b2f"
+  integrity sha512-O4fAYIyfsFEcAYMUlnjRume05vO06YOjYD6u+aVpOghjmByaHCmLHevdU4jFnC5nXfq7qXZfqh0nPcirN/naOw==
   dependencies:
-    "@orioro/expression" "^1.0.0"
+    "@orioro/expression" "^3.0.0"
 
 "@rollup/plugin-babel@^5.2.3":
   version "5.2.3"

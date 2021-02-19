@@ -11,8 +11,8 @@ import { ALL_EXPRESSIONS } from '@orioro/expression'
 
 import {
   parseValidations,
-  mapValidationResolver,
-  listValidationResolver,
+  objectValidationResolver,
+  arrayValidationResolver,
   defaultValidationResolver,
   stringValidationResolver,
 } from './parseValidations'
@@ -46,7 +46,7 @@ describe('parseValidations(schema, context) - required / optional', () => {
     }
 
     const validations = parseValidations(schema, undefined, {
-      resolvers: [mapValidationResolver(), defaultValidationResolver()],
+      resolvers: [objectValidationResolver(), defaultValidationResolver()],
     })
 
     expect(validations).toEqual([
@@ -84,7 +84,7 @@ describe('parseValidations(schema, context) - required / optional', () => {
     }
 
     const validations = parseValidations(schema, undefined, {
-      resolvers: [mapValidationResolver(), defaultValidationResolver()],
+      resolvers: [objectValidationResolver(), defaultValidationResolver()],
     })
 
     expect(validations).toMatchObject([
@@ -128,11 +128,6 @@ test('string validations', () => {
     message: 'Text must have at most 10 chars',
   }
 
-  const PATTERN_ERROR = {
-    code: 'PATTERN_ERROR',
-    message: 'Text must match pattern',
-  }
-
   const schema = {
     type: 'string',
     required: true,
@@ -144,7 +139,6 @@ test('string validations', () => {
       type: TYPE_ERROR,
       minLength: MIN_LENGTH_ERROR,
       maxLength: MAX_LENGTH_ERROR,
-      pattern: PATTERN_ERROR,
     },
   }
 
@@ -162,7 +156,6 @@ test('string validations', () => {
         parallelCases([
           [['$gte', 5, ['$stringLength']], MIN_LENGTH_ERROR],
           [['$lte', 10, ['$stringLength']], MAX_LENGTH_ERROR],
-          [['$stringTest', ['^a.+z$', 'i']], PATTERN_ERROR],
         ]),
       ]),
     },
@@ -172,9 +165,8 @@ test('string validations', () => {
     [null, [REQUIRED_ERROR]],
     [undefined, [REQUIRED_ERROR]],
     [9, [TYPE_ERROR]],
-    ['a', [MIN_LENGTH_ERROR, PATTERN_ERROR]],
-    ['abcdefghijklmnopqrstuv', [MAX_LENGTH_ERROR, PATTERN_ERROR]],
-    ['bcdefghi', [PATTERN_ERROR]],
+    ['a', [MIN_LENGTH_ERROR]],
+    ['abcdefghijklmnopqrstuv', [MAX_LENGTH_ERROR]],
     ['abcdez', null],
     ['AbcdeZ', null],
   ]
@@ -217,7 +209,7 @@ describe('list validations', () => {
       ['123', '12345', '1234567', '123456789012345'],
       {
         resolvers: [
-          listValidationResolver(),
+          arrayValidationResolver(),
           stringValidationResolver(),
           defaultValidationResolver(),
         ],

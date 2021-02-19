@@ -1,37 +1,11 @@
-import {
-  EvaluationContext,
-  ExpressionInterpreter,
-  Expression,
-  $$VALUE,
-  evaluate,
-} from '@orioro/expression'
+import { ExpressionInterpreter, interpreter } from '@orioro/expression'
+
+import { getType as _getType } from '@orioro/validate-type'
 
 const defaultGetType = (value) => undefined // eslint-disable-line @typescript-eslint/no-unused-vars
 
 export type GetTypeInterface = (value: any) => string | void
 
 export const schemaTypeExpression = (
-  getType: GetTypeInterface = defaultGetType
-): ExpressionInterpreter => (
-  context: EvaluationContext,
-  valueExp: Expression = $$VALUE
-) => {
-  const value = evaluate(context, valueExp)
-  let type = getType(value)
-
-  if (typeof type === 'string') {
-    return type
-  } else {
-    type = typeof value
-
-    if (type === 'object') {
-      if (Array.isArray(type)) {
-        return 'list'
-      } else {
-        return 'map'
-      }
-    } else {
-      return type
-    }
-  }
-}
+  getType: GetTypeInterface = _getType
+): ExpressionInterpreter => interpreter((value: any) => getType(value), ['any'])

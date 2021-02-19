@@ -10,15 +10,12 @@ import {
   ENUM,
   STRING_MIN_LENGTH,
   STRING_MAX_LENGTH,
-  STRING_PATTERN,
   NUMBER_MIN,
-  NUMBER_MIN_EXCLUSIVE,
   NUMBER_MAX,
-  NUMBER_MAX_EXCLUSIVE,
   NUMBER_MULTIPLE_OF,
-  LIST_MIN_LENGTH,
-  LIST_MAX_LENGTH,
-  LIST_UNIQUE_ITEMS,
+  ARRAY_MIN_LENGTH,
+  ARRAY_MAX_LENGTH,
+  ARRAY_UNIQUE_ITEMS,
   parseValidationCases,
 } from './parseValidationCases'
 
@@ -76,7 +73,9 @@ const _wrapValidationExp = (
 ) =>
   fnPipe(_type.bind(null, schema), _required.bind(null, schema))(validationExp)
 
-export const mapValidationResolver = (mapTypes = ['map']): Alternative => [
+export const objectValidationResolver = (
+  mapTypes = ['object']
+): Alternative => [
   (schema) =>
     isPlainObject(schema) &&
     isPlainObject(schema.properties) &&
@@ -108,7 +107,7 @@ export const mapValidationResolver = (mapTypes = ['map']): Alternative => [
 /**
  * @todo - Support `items` instead of `itemSchema` and add support for tuples
  */
-export const listValidationResolver = (listTypes = ['list']): Alternative => [
+export const arrayValidationResolver = (listTypes = ['array']): Alternative => [
   (schema) => isPlainObject(schema) && listTypes.includes(schema.type),
   (schema, context) => {
     //
@@ -136,9 +135,9 @@ export const listValidationResolver = (listTypes = ['list']): Alternative => [
 
     const cases = parseValidationCases(schema, [
       ENUM,
-      LIST_MIN_LENGTH,
-      LIST_MAX_LENGTH,
-      LIST_UNIQUE_ITEMS,
+      ARRAY_MIN_LENGTH,
+      ARRAY_MAX_LENGTH,
+      ARRAY_UNIQUE_ITEMS,
     ])
 
     return [
@@ -172,12 +171,7 @@ export const _validationResolver = (
 export const stringValidationResolver = (
   stringTypes = ['string']
 ): Alternative =>
-  _validationResolver(stringTypes, [
-    ENUM,
-    STRING_MIN_LENGTH,
-    STRING_MAX_LENGTH,
-    STRING_PATTERN,
-  ])
+  _validationResolver(stringTypes, [ENUM, STRING_MIN_LENGTH, STRING_MAX_LENGTH])
 
 export const numberValidationResolver = (
   numberTypes = ['number']
@@ -185,9 +179,7 @@ export const numberValidationResolver = (
   _validationResolver(numberTypes, [
     ENUM,
     NUMBER_MIN,
-    NUMBER_MIN_EXCLUSIVE,
     NUMBER_MAX,
-    NUMBER_MAX_EXCLUSIVE,
     NUMBER_MULTIPLE_OF,
   ])
 
@@ -206,9 +198,10 @@ export const defaultValidationResolver = (): Alternative => [
 ]
 
 const DEFAULT_RESOLVERS = [
-  mapValidationResolver(),
-  listValidationResolver(),
+  objectValidationResolver(),
+  arrayValidationResolver(),
   stringValidationResolver(),
+  numberValidationResolver(),
   defaultValidationResolver(),
 ]
 
