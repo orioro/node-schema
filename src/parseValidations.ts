@@ -58,9 +58,7 @@ const _casesValidationExp = (
   schema:ResolvedSchema,
   caseResolvers
 ):(Expression | null) => {
-  const cases = parseValidationCases(schema, {
-    resolvers: caseResolvers
-  })
+  const cases = parseValidationCases(schema, caseResolvers)
 
   return cases.length > 0
     ? parallelCases(cases)
@@ -107,7 +105,7 @@ export const mapValidationResolver = (mapTypes = ['map']) => ([
     return Object.keys(schema.properties).reduce((acc, key) => {
       return [
         ...acc,
-        ...parseValidations(schema.properties[key], {
+        ...parseValidations(schema.properties[key], context.value, {
           ...context,
           path: pathJoin(context.path, key)
         })
@@ -138,21 +136,19 @@ export const listValidationResolver = (listTypes = ['list']) => ([
             value: itemValue
           })
 
-          return [...acc, ...parseValidations(schema, {
+          return [...acc, ...parseValidations(schema, context.value, {
             ...context,
             path: pathJoin(context.path, index)
           })]
         }, [])
       : []
 
-    const cases = parseValidationCases(schema, {
-      resolvers: [
-        ENUM,
-        LIST_MIN_LENGTH,
-        LIST_MAX_LENGTH,
-        LIST_UNIQUE_ITEMS
-      ]
-    })
+    const cases = parseValidationCases(schema, [
+      ENUM,
+      LIST_MIN_LENGTH,
+      LIST_MAX_LENGTH,
+      LIST_UNIQUE_ITEMS
+    ])
 
     return [{
       path: context.path,
@@ -219,10 +215,15 @@ const DEFAULT_RESOLVERS = [
   defaultValidationResolver(),
 ]
 
+/**
+ * @todo parseValidations substitute treeSourceNodes for treeCollectNodes
+ */
 export const parseValidations = (
   schema:ResolvedSchema,
-  context:ParseValidationsContext
+  value:any,
+  context:ParseValidationsContext = {}
 ) => treeSourceNodes(schema, {
   resolvers: DEFAULT_RESOLVERS,
-  ...context
+  ...context,
+  value
 })

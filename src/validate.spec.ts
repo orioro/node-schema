@@ -46,9 +46,9 @@ describe('type: string', () => {
 
     expectations.forEach(([input, result]) => {
       if (typeof result === 'object' && result !== null) {
-        expect(validate(schema, { value: input })).toMatchObject(result)
+        expect(validate(schema, input)).toMatchObject(result)
       } else {
-        expect(validate(schema, { value: input })).toEqual(result)
+        expect(validate(schema, input)).toEqual(result)
       }
     })
   })
@@ -82,9 +82,9 @@ describe('type: string', () => {
 
     expectations.forEach(([input, result]) => {
       if (typeof result === 'object' && result !== null) {
-        expect(validate(schema, { value: input })).toMatchObject(result)
+        expect(validate(schema, input)).toMatchObject(result)
       } else {
-        expect(validate(schema, { value: input })).toEqual(result)
+        expect(validate(schema, input)).toEqual(result)
       }
     })
   })
@@ -135,19 +135,15 @@ describe('type: map - 1', () => {
 
   test('no error', () => {
     expect(validate(schema, {
-      value: {
-        givenName: 'João',
-        familyName: 'Moreira',
-        role: 'driver',
-        age: 20
-      }
+      givenName: 'João',
+      familyName: 'Moreira',
+      role: 'driver',
+      age: 20
     })).toEqual(null)
   })
 
   test('REQUIRED_ERROR', () => {
-    expect(validate(schema, {
-      value: {}
-    })).toEqual([
+    expect(validate(schema, {})).toEqual([
       {
         ...REQUIRED_ERROR,
         path: 'givenName',
@@ -173,7 +169,7 @@ describe('type: map - 1', () => {
       age: 15
     }
 
-    expect(validate(schema, { value })).toEqual([
+    expect(validate(schema, value)).toEqual([
       {
         code: 'DRIVER_MIN_AGE_18',
         path: '',
@@ -214,8 +210,7 @@ describe('type: list - 1', () => {
       '12345678901234567890',
     ]
 
-    const result = validate(schema, {
-      value,
+    const result = validate(schema, value, {
       getType: value => {
         return Array.isArray(value)
           ? 'list'

@@ -20,7 +20,7 @@ const cities = [
 const states = ['SP', 'RJ', 'MG']
 const citiesByState = groupBy(cities, 'state')
 
-describe('resolveSchema(schema, context) - using schemaResolverFunction', () => {
+describe('resolveSchema(schema, value, context?) - using schemaResolverFunction', () => {
   test('', () => {
     const schema = {
       type: 'map',
@@ -45,8 +45,7 @@ describe('resolveSchema(schema, context) - using schemaResolverFunction', () => 
     ]
 
     expected.forEach(([value, expectedOptions]) => {
-      expect(resolveSchema(schema, {
-        value,
+      expect(resolveSchema(schema, value, {
         resolvers: [
           schemaResolverFunction(),
           schemaResolverObject(),
@@ -88,7 +87,7 @@ describe('resolveSchema(schema, context) - using expressions', () => {
     ]
 
     expected.forEach(([value, expectedOptions]) => {
-      expect(resolveSchema(schema, { value }).properties.city.options)
+      expect(resolveSchema(schema, value).properties.city.options)
         .toEqual(expectedOptions)
     })
   })
@@ -131,7 +130,7 @@ describe('resolveSchema(schema, context) - using expressions', () => {
     ]
 
     expected.forEach(([input, expectedOptions]) => {
-      expect(resolveSchema(schema, { value: input }).properties.key3.options)
+      expect(resolveSchema(schema, input).properties.key3.options)
         .toEqual(expectedOptions)
     })
   })
@@ -193,9 +192,7 @@ describe('properties whose nested resolution should be skipped by default', () =
     ]
 
     expectations.forEach(([input, textMaxLength, textValidation]) => {
-      const resolved = resolveSchema(schema, {
-        value: input
-      })
+      const resolved = resolveSchema(schema, input)
 
       expect(resolved.properties.text.maxLength).toEqual(textMaxLength)
       expect(resolved.properties.text.validation).toEqual(textValidation)
@@ -254,13 +251,9 @@ describe('properties whose nested resolution should be skipped by default', () =
     ]
 
     expectations.forEach(([input, result]) => {
-      const resolved = resolveSchema(schema, {
-        value: input
-      })
+      const resolved = resolveSchema(schema, input)
       
       expect(resolved.properties.items.itemSchema).toEqual(result)
     })
   })
 })
-
-

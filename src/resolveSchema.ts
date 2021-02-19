@@ -67,7 +67,7 @@ export const schemaResolverExperssion = ({
     )
 
     return shouldResolveNested
-      ? resolveSchema(value, context)
+      ? resolveSchema(value, context.value, context)
       : value
   }
 ])
@@ -84,8 +84,10 @@ const DEFAULT_RESOLVERS = [
 
 export const resolveSchema = (
   schema:UnresolvedSchema,
-  context:ResolveSchemaContext
+  value:any,
+  context:ResolveSchemaContext = {}
 ):ResolvedSchema => nestedMap(schema, {
+  value,
   resolvers: DEFAULT_RESOLVERS,
   ...context
 })

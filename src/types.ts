@@ -2,7 +2,7 @@ import { ExpressionInterpreter, Expression } from '@orioro/expression'
 import { ValidationErrorSpec } from '@orioro/validate'
 
 export type Context = {
-  value: any,
+  value?: any,
   interpreters?: { [key:string]: ExpressionInterpreter },
   path?: string,
   [key:string]: any

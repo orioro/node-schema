@@ -137,13 +137,13 @@ export const LIST_UNIQUE_ITEMS:Alternative = [
   ])
 ]
 
-export const parseValidationCases = (schema, context) => {
+export const parseValidationCases = (schema, resolvers) => {
   const parsedCases = cascadeFilter(
     test,
-    context.resolvers,
+    resolvers,
     schema
   )
-  .map(prepareCase => prepareCase(schema, context))
+  .map(prepareCase => prepareCase(schema))
 
   const schemaCases = Array.isArray(schema.validation)
     ? schema.validation

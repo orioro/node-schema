@@ -18,9 +18,15 @@ type ValidateContext = Context & {
 
 export const validate = (
   resolvedSchema:ResolvedSchema,
-  context:ValidateContext
+  value:any,
+  context:ValidateContext = {}
 ) => {
-  const validations = parseValidations(resolvedSchema, context)
+  context = {
+    ...context,
+    value
+  }
+  
+  const validations = parseValidations(resolvedSchema, context.value, context)
 
   const interpreters = {
     ...ALL_EXPRESSIONS,

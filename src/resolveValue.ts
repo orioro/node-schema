@@ -1,9 +1,12 @@
 import { isPlainObject } from 'lodash'
 import { nestedMap, ResolverCandidate } from '@orioro/nested-map'
-import { ResolvedSchema } from './types'
+import { ResolvedSchema, Context } from './types'
 
+type ResolveValueContext = Context & {
+  resolvers?: ResolverCandidate[]
+}
 
-const _valueResolver = (types, resolve) => ([
+const _valueResolver = (types, resolve):ResolverCandidate => ([
   (schema) => (
     isPlainObject(schema) &&
     types.includes(schema.type)
@@ -24,7 +27,7 @@ const _valueResolver = (types, resolve) => ([
   }
 ])
 
-export const objectValueResolver = (objectTypes = ['object']) =>
+export const objectValueResolver = (objectTypes = ['object']):ResolverCandidate =>
   _valueResolver(objectTypes, (schema, context) => {
     const { value } = context
 
@@ -33,10 +36,7 @@ export const objectValueResolver = (objectTypes = ['object']) =>
         ? Object.keys(schema.properties).reduce((acc, key) => {
             return {
               ...acc,
-              [key]: resolveValue(schema.properties[key], {
-                ...context,
-                value: value[key]
-              })
+              [key]: resolveValue(schema.properties[key], value[key], context)
             }
           }, {})
         : {} // no known properties properties
@@ -47,39 +47,36 @@ export const objectValueResolver = (objectTypes = ['object']) =>
 
 const _nItemsArray = (n, itemValue) => Array(n).fill(itemValue)
 
-export const arrayValueResolver = (arrayTypes = ['array']) => _valueResolver(arrayTypes, (schema, context) => {
+export const arrayValueResolver = (arrayTypes = ['array']):ResolverCandidate => _valueResolver(arrayTypes, (schema, context) => {
   const { value } = context
   if (Array.isArray(value)) {
     return isPlainObject(schema.itemSchema)
-      ? value.map(item => resolveValue(schema.itemSchema, {
-          ...context,
-          value: item
-        }))
+      ? value.map(item => resolveValue(schema.itemSchema, item, context))
       : _nItemsArray(value.length, null) // no itemSchema defined
   } else {
     return null
   }
 })
 
-export const numberValueResolver = () => _valueResolver(['number'], (schema, { value }) =>
+export const numberValueResolver = ():ResolverCandidate => _valueResolver(['number'], (schema, { value }) =>
   typeof value === 'number' && !isNaN(value)
     ? value
     : null
 )
 
-export const stringValueResolver = () => _valueResolver(['string'], (schema, { value }) => 
+export const stringValueResolver = ():ResolverCandidate => _valueResolver(['string'], (schema, { value }) => 
   typeof value === 'string'
     ? value
     : null
 )
 
-export const booleanValueResolver = () => _valueResolver(['boolean'], (schema, { value }) =>
+export const booleanValueResolver = ():ResolverCandidate => _valueResolver(['boolean'], (schema, { value }) =>
   typeof value === 'boolean'
     ? value
     : null
 )
 
-export const defaultValueResolver = () => ([
+export const defaultValueResolver = ():ResolverCandidate => ([
   (schema, context) => {
     throw new Error(`Unknown type ${schema && schema.type}`)
   }
@@ -91,7 +88,8 @@ export const defaultValueResolver = () => ([
  */
 export const resolveValue =(
   resolvedSchema: ResolvedSchema,
-  context
+  value:any,
+  context:ResolveValueContext = {}
 ):any => {
   return nestedMap(resolvedSchema, {
     resolvers: [
@@ -103,5 +101,6 @@ export const resolveValue =(
       defaultValueResolver(),
     ],
     ...context,
+    value
   })
 }

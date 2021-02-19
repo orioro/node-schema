@@ -48,12 +48,11 @@ describe('parseValidations(schema, context) - required / optional', () => {
       }
     }
 
-    const validations = parseValidations(schema, {
+    const validations = parseValidations(schema, undefined, {
       resolvers: [
         mapValidationResolver(),
         defaultValidationResolver()
-      ],
-      value: undefined
+      ]
     })
 
     expect(validations).toEqual([
@@ -93,12 +92,11 @@ describe('parseValidations(schema, context) - required / optional', () => {
       }
     }
 
-    const validations = parseValidations(schema, {
+    const validations = parseValidations(schema, undefined, {
       resolvers: [
         mapValidationResolver(),
         defaultValidationResolver()
-      ],
-      value: undefined
+      ]
     })
 
     expect(validations).toMatchObject([
@@ -162,8 +160,7 @@ test('string validations', () => {
     }
   }
 
-  const validations = parseValidations(schema, {
-    value: 'Some text',
+  const validations = parseValidations(schema, 'Some text', {
     resolvers: [
       stringValidationResolver(),
       defaultValidationResolver()
@@ -242,8 +239,7 @@ describe('list validations', () => {
   }
 
   test('', () => {
-    const validations = parseValidations(schema, {
-      value: ['123', '12345', '1234567', '123456789012345'],
+    const validations = parseValidations(schema, ['123', '12345', '1234567', '123456789012345'], {
       resolvers: [
         listValidationResolver(),
         stringValidationResolver(),

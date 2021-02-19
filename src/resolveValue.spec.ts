@@ -117,7 +117,7 @@ describe('type casting', () => {
           : String(input)
 
       test(`${type}(${inputLabel}) -> ${resultByType[type]}`, () => {
-        expect(resolveValue({ type }, { value: input }))
+        expect(resolveValue({ type }, input))
           .toEqual(resultByType[type])
       })
     })
@@ -140,7 +140,7 @@ describe('array', () => {
     ]
 
     expectations.forEach(([input, result]) => {
-      expect(resolveValue(schema, { value: input })).toEqual(result)
+      expect(resolveValue(schema, input)).toEqual(result)
     })
   })
 
@@ -159,8 +159,8 @@ describe('array', () => {
         }
       }
 
-      expect(resolveValue(schema, { value: undefined })).toEqual(null)
-      expect(resolveValue(schema, { value: [undefined, undefined, 'some value'] }))
+      expect(resolveValue(schema, undefined)).toEqual(null)
+      expect(resolveValue(schema, [undefined, undefined, 'some value']))
         .toEqual([
           'DEFAULT_VALUE',
           'DEFAULT_VALUE',
@@ -169,7 +169,7 @@ describe('array', () => {
       expect(resolveValue({
         ...schema,
         default: [undefined]
-      }, { value: undefined }))
+      }, undefined))
       .toEqual(['DEFAULT_VALUE'])
     })
 
@@ -206,7 +206,7 @@ describe('object', () => {
     ]
 
     expectations.forEach(([input, result]) => {
-      expect(resolveValue(schema, { value: input })).toEqual(result)
+      expect(resolveValue(schema, input)).toEqual(result)
     })
   })
 
@@ -276,9 +276,7 @@ describe('object', () => {
     ]
 
     expectations.forEach(([input, result]) => {
-      expect(resolveValue(schema, {
-        value: input
-      }))
+      expect(resolveValue(schema, input))
       .toEqual(result)
     })
   })
@@ -299,22 +297,22 @@ describe('object', () => {
         }
       }
 
-      expect(resolveValue(schema, { value: undefined }))
+      expect(resolveValue(schema, undefined))
         .toEqual(null)
       expect(resolveValue({
         ...schema,
         default: {}
-      }, { value: undefined }))
+      }, undefined))
         .toEqual({
           key1: 'DEFAULT_VALUE',
           key2: 10
         })
-      expect(resolveValue(schema, { value: {} }))
+      expect(resolveValue(schema, {}))
         .toEqual({
           key1: 'DEFAULT_VALUE',
           key2: 10
         })
-      expect(resolveValue(schema, { value: { key2: 8} }))
+      expect(resolveValue(schema, { key2: 8}))
         .toEqual({
           key1: 'DEFAULT_VALUE',
           key2: 8

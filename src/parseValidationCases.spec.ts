@@ -9,11 +9,9 @@ describe('common', () => {
       type: 'string',
       enum: ['A', 'B', 'C']
     }
-    const cases = parseValidationCases(schema, {
-      resolvers: [
-        ENUM
-      ]
-    })
+    const cases = parseValidationCases(schema, [
+      ENUM
+    ])
 
     expect(cases).toMatchObject([
       [
