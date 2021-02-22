@@ -94,6 +94,23 @@ export const ARRAY_MAX_LENGTH: Alternative = [
   ],
 ]
 
+export const ARRAY_EXACT_LENGTH: Alternative = [
+  (schema: ResolvedSchema): boolean =>
+    typeof schema.exactLength === 'number' || Array.isArray(schema.items),
+  (schema: ResolvedSchema): ValidationCase => [
+    [
+      '$eq',
+      typeof schema.exactLength === 'number'
+        ? schema.exactLength
+        : schema.items.length,
+      ['$arrayLength'],
+    ],
+    getError(schema, 'exactLength', {
+      code: 'ARRAY_EXACT_LENGTH_ERROR',
+    }),
+  ],
+]
+
 export const ARRAY_UNIQUE_ITEMS: Alternative = [
   (schema: ResolvedSchema): boolean => Boolean(schema.uniqueItems),
   (schema: ResolvedSchema): ValidationCase => [

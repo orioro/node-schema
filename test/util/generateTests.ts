@@ -1,9 +1,10 @@
-export const _generateTests = (expectations, fn) => {
+const _defaultTestLabel = (inputLabel, resultLabel) => `${inputLabel} -> ${resultLabel}`
+export const _generateTests = (expectations, fn, label = _defaultTestLabel) => {
   expectations.forEach(([input, result]) => {
     const inputLabel = _valueLabel(input)
     const resultLabel = _validationResultLabel(result)
 
-    const testLabel = `validate(schema, ${inputLabel}) -> ${resultLabel}`
+    const testLabel = label(inputLabel, resultLabel)
 
     if (result === null) {
       test(testLabel, () => expect(fn(input)).toEqual(null))

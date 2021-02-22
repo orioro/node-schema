@@ -164,10 +164,10 @@ describe('type casting', () => {
 })
 
 describe('array', () => {
-  test('w/ object itemSchema', () => {
+  test('w/ object items', () => {
     const schema = {
       type: 'array',
-      itemSchema: {
+      items: {
         type: 'string',
       },
     }
@@ -190,16 +190,16 @@ describe('array', () => {
   })
 
   /**
-   * @todo resolveValue convert `itemSchema` to `items`
+   * @todo resolveValue convert `items` to `items`
    */
   // eslint-disable-next-line
-  test.skip('w/ tuple itemSchema', () => {})
+  test.skip('w/ tuple items', () => {})
 
   describe('default', () => {
-    test('w/ object itemSchema', () => {
+    test('w/ object items', () => {
       const schema = {
         type: 'array',
-        itemSchema: {
+        items: {
           type: 'string',
           default: 'DEFAULT_VALUE',
         },
@@ -221,7 +221,7 @@ describe('array', () => {
     })
 
     // eslint-disable-next-line
-    test.skip('w/ tuple itemSchema', () => {})
+    test.skip('w/ tuple items', () => {})
   })
 })
 
@@ -291,7 +291,7 @@ describe('object', () => {
         key5: {
           type: 'array',
           default: [undefined],
-          itemSchema: {
+          items: {
             type: 'string',
             default: 'key5_item',
           },

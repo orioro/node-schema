@@ -24,7 +24,7 @@ export const schemaResolverFunction = (): ResolverCandidate => [
   (func, context) => func(context.value),
 ]
 
-const SKIP_NESTED_RESOLUTION_KEYS = ['itemSchema', 'validation']
+const SKIP_NESTED_RESOLUTION_KEYS = ['items', 'validation']
 
 type SchemaResolverExperssionOptions = {
   interpreters?: { [key: string]: ExpressionInterpreter }

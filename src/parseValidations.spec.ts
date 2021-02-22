@@ -189,7 +189,7 @@ describe('list validations', () => {
 
   const schema = {
     type: 'list',
-    itemSchema: {
+    items: {
       type: 'string',
       required: true,
       minLength: 5,

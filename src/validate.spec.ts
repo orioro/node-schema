@@ -6,6 +6,9 @@ import {
   _generateTests,
 } from '../test/util/generateTests'
 
+const _validationTestLabel = (inputLabel, resultLabel) =>
+  `validate(schema, ${inputLabel}) -> ${resultLabel}`
+
 describe('REQUIRED_ERROR and TYPE_ERROR', () => {
   const MATCH_REQUIRED_ERROR = [{ code: 'REQUIRED_ERROR' }]
   const MATCH_TYPE_ERROR = [{ code: 'TYPE_ERROR' }]
@@ -359,10 +362,280 @@ describe('array', () => {
     ).toEqual(null)
   })
 
-  // eslint-disable-next-line jest/no-disabled-tests
-  describe.skip('items: immediately nested item validation', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const schema = { type: 'array' }
+  test('items: immediately nested values - array -> string', () => {
+    const schema = {
+      type: 'array',
+      items: {
+        type: 'string',
+        required: true,
+        minLength: 5,
+        maxLength: 10,
+      },
+    }
+
+    expect(validate(schema, ['12345', '1234567', '1234567890'])).toEqual(null)
+
+    expect(
+      validate(schema, ['1234', '123', '12345', '12345678901'])
+    ).toMatchObject([
+      { path: '0', code: 'STRING_MIN_LENGTH_ERROR' },
+      { path: '1', code: 'STRING_MIN_LENGTH_ERROR' },
+      { path: '3', code: 'STRING_MAX_LENGTH_ERROR' },
+    ])
+  })
+
+  describe('items: nested - array -> object', () => {
+    const schema = {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          strRequired: {
+            type: 'string',
+            required: true,
+          },
+          strMinLen5: {
+            type: 'string',
+            minLength: 5,
+          },
+        },
+      },
+    }
+
+    const expectations = [
+      [null, null],
+      [[], null],
+      [
+        [
+          { strRequired: 'some string', strMinLen5: '12345' },
+          { strRequired: 'another string', strMinLen5: '123456' },
+        ],
+        null,
+      ],
+      [
+        [{ strMinLen5: '12345' }, { strMinLen5: '1234' }],
+        [
+          { code: 'REQUIRED_ERROR', path: '0.strRequired' },
+          { code: 'REQUIRED_ERROR', path: '1.strRequired' },
+          { code: 'STRING_MIN_LENGTH_ERROR', path: '1.strMinLen5' },
+        ],
+      ],
+    ]
+
+    _generateTests(
+      expectations,
+      (input) => validate(schema, input),
+      _validationTestLabel
+    )
+  })
+
+  describe('items: nested - array -> array -> object', () => {
+    const schema = {
+      type: 'array',
+      items: {
+        type: 'array',
+        minLength: 2,
+        items: {
+          type: 'object',
+          properties: {
+            strRequired: {
+              type: 'string',
+              required: true,
+            },
+            strMinLen5: {
+              type: 'string',
+              minLength: 5,
+            },
+          },
+        },
+      },
+    }
+
+    const expectations = [
+      [
+        // input:
+        [
+          [
+            { strRequired: 'some string', strMinLen5: '12345' },
+            { strRequired: 'another string', strMinLen5: '123456' },
+          ],
+          [
+            { strRequired: 'yet another string', strMinLen5: '123456' },
+            { strRequired: 'yet another string', strMinLen5: '12345678' },
+          ],
+        ],
+        // expected result:
+        null,
+      ],
+
+      [
+        // input:
+        [
+          [{ strMinLen5: '12345' }, { strRequired: 'another string' }],
+          [{ strRequired: 'yet another string', strMinLen5: '123' }],
+          [{ strMinLen5: '123' }],
+        ],
+        // expected result:
+        [
+          { code: 'REQUIRED_ERROR', path: '0.0.strRequired' },
+          { code: 'ARRAY_MIN_LENGTH_ERROR', path: '1' },
+          { code: 'STRING_MIN_LENGTH_ERROR', path: '1.0.strMinLen5' },
+          { code: 'ARRAY_MIN_LENGTH_ERROR', path: '2' },
+          { code: 'REQUIRED_ERROR', path: '2.0.strRequired' },
+          { code: 'STRING_MIN_LENGTH_ERROR', path: '2.0.strMinLen5' },
+        ],
+      ],
+    ]
+
+    _generateTests(
+      expectations,
+      (input) => validate(schema, input),
+      _validationTestLabel
+    )
+  })
+
+  describe('items: nested - array -> object -> array -> value', () => {
+    const schema = {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          strRequired: {
+            type: 'string',
+            required: true,
+          },
+          strMinLen5: {
+            type: 'string',
+            minLength: 5,
+          },
+          arrayMinLen1: {
+            type: 'array',
+            minLength: 1,
+            items: {
+              type: 'string',
+              maxLength: 4,
+            },
+          },
+        },
+      },
+    }
+
+    const expectations = [
+      [
+        [
+          { strRequired: 'str1', strMinLen5: '12345', arrayMinLen1: [null] },
+          {
+            strRequired: 'str2',
+            strMinLen5: '12345',
+            arrayMinLen1: ['1234', null, '123'],
+          },
+        ],
+        null,
+      ],
+      [
+        [
+          { strMinLen5: '12345', arrayMinLen1: [] },
+          {
+            strRequired: 'str2',
+            strMinLen5: '123',
+            arrayMinLen1: [1, null, '12345678'],
+          },
+        ],
+        [
+          { code: 'REQUIRED_ERROR', path: '0.strRequired' },
+          { code: 'ARRAY_MIN_LENGTH_ERROR', path: '0.arrayMinLen1' },
+          { code: 'STRING_MIN_LENGTH_ERROR', path: '1.strMinLen5' },
+          { code: 'TYPE_ERROR', path: '1.arrayMinLen1.0' },
+          { code: 'STRING_MAX_LENGTH_ERROR', path: '1.arrayMinLen1.2' },
+        ],
+      ],
+    ]
+
+    _generateTests(
+      expectations,
+      (input) => validate(schema, input),
+      _validationTestLabel
+    )
+  })
+
+  describe('items: as tuple', () => {
+    const schema = {
+      type: 'array',
+      items: [
+        {
+          type: 'string',
+          required: true,
+        },
+        {
+          type: 'number',
+          min: 50,
+          max: 100,
+        },
+        {
+          type: 'object',
+          properties: {
+            strRequired: {
+              type: 'string',
+              required: true,
+            },
+            strMinLen5: {
+              type: 'string',
+              minLength: 5,
+            },
+          },
+        },
+        {
+          type: 'array',
+          items: {
+            type: 'string',
+            required: true,
+          },
+          minLength: 2,
+        },
+      ],
+    }
+
+    const expectations = [
+      [
+        [
+          'some string',
+          50,
+          {
+            strRequired: 'another str',
+            strMinLen5: '12345',
+          },
+          ['str1', 'str2'],
+        ],
+        null,
+      ],
+      [
+        ['Some string', 49, { strMinLen5: '123' }, [0]],
+        [
+          { code: 'NUMBER_MIN_ERROR', path: '1' },
+          { code: 'REQUIRED_ERROR', path: '2.strRequired' },
+          { code: 'STRING_MIN_LENGTH_ERROR', path: '2.strMinLen5' },
+          { code: 'ARRAY_MIN_LENGTH_ERROR', path: '3' },
+          { code: 'TYPE_ERROR', path: '3.0' },
+        ],
+      ],
+      [
+        [
+          'some string',
+          50,
+          {
+            strRequired: 'another str',
+            strMinLen5: '12345',
+          },
+        ],
+        [{ code: 'ARRAY_EXACT_LENGTH_ERROR', path: '' }],
+      ],
+    ]
+
+    _generateTests(
+      expectations,
+      (input) => validate(schema, input),
+      _validationTestLabel
+    )
   })
 })
 
@@ -410,14 +683,6 @@ describe('object', () => {
     },
   }
 
-  // const objSchema3 = {
-  //   type: 'object',
-  //   properties: {
-  //     objSchema1,
-  //     objSchema2,
-  //   },
-  // }
-
   describe('properties: immediately nested properties errors', () => {
     const schema = objSchema1
 
@@ -450,10 +715,14 @@ describe('object', () => {
       ],
     ]
 
-    _generateTests(expectations, (input) => validate(schema, input))
+    _generateTests(
+      expectations,
+      (input) => validate(schema, input),
+      _validationTestLabel
+    )
   })
 
-  describe('properties -> properties: deep nested properties errors', () => {
+  describe('properties: nested errors - object -> object -> value', () => {
     const schema = objSchema2
 
     const expectations = [
@@ -466,11 +735,67 @@ describe('object', () => {
       ],
     ]
 
-    _generateTests(expectations, (input) => validate(schema, input))
+    _generateTests(
+      expectations,
+      (input) => validate(schema, input),
+      _validationTestLabel
+    )
   })
 
-  // eslint-disable-next-line jest/no-disabled-tests, @typescript-eslint/no-empty-function
-  describe.skip('properties -> array.items -> properties: deep nested array item properties errors', () => {})
+  describe('properties: nested errors - object -> array -> object -> value', () => {
+    const schema = {
+      type: 'object',
+      properties: {
+        strRequired,
+        arrayNested: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              strRequired,
+              strMinLen5,
+            },
+          },
+          minLength: 3,
+        },
+      },
+    }
+
+    const expectations = [
+      [
+        {
+          strRequired: 'str_1',
+          arrayNested: [
+            { strRequired: 'str_2', strMinLen5: '12345' },
+            { strRequired: 'str_3', strMinLen5: '123456' },
+            { strRequired: 'str_4', strMinLen5: '12345' },
+          ],
+        },
+        null,
+      ],
+      [
+        {
+          arrayNested: [
+            { strMinLen5: '1234' },
+            { strRequired: 'str_3', strMinLen5: '123' },
+          ],
+        },
+        [
+          { code: 'REQUIRED_ERROR', path: 'strRequired' },
+          { code: 'ARRAY_MIN_LENGTH_ERROR', path: 'arrayNested' },
+          { code: 'REQUIRED_ERROR', path: 'arrayNested.0.strRequired' },
+          { code: 'STRING_MIN_LENGTH_ERROR', path: 'arrayNested.0.strMinLen5' },
+          { code: 'STRING_MIN_LENGTH_ERROR', path: 'arrayNested.1.strMinLen5' },
+        ],
+      ],
+    ]
+
+    _generateTests(
+      expectations,
+      (input) => validate(schema, input),
+      _validationTestLabel
+    )
+  })
 })
 
 ////////////////////////////////////
@@ -569,7 +894,7 @@ describe.skip('type: object', () => {
 describe.skip('type: array - 1', () => {
   const schema = {
     type: 'array',
-    itemSchema: {
+    items: {
       type: 'string',
       required: true,
       minLength: 5,

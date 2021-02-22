@@ -28,7 +28,7 @@ export type MapSchema = ResolvedSchema & {
 }
 
 export type ListSchema = ResolvedSchema & {
-  itemSchema: ResolvedSchema
+  items: ResolvedSchema
   minLength?: number
   maxLength?: number
 }

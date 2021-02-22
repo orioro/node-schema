@@ -204,7 +204,7 @@ describe('properties whose nested resolution should be skipped by default', () =
     })
   })
 
-  test('`itemSchema`', () => {
+  test('`items`', () => {
     const schemasBySize = {
       small: {
         type: 'string',
@@ -237,7 +237,7 @@ describe('properties whose nested resolution should be skipped by default', () =
         },
         items: {
           type: 'array',
-          itemSchema: [
+          items: [
             '$switchKey',
             schemasBySize,
             schemasBySize.small,
@@ -257,7 +257,7 @@ describe('properties whose nested resolution should be skipped by default', () =
     expectations.forEach(([input, result]) => {
       const resolved = resolveSchema(schema, input)
 
-      expect(resolved.properties.items.itemSchema).toEqual(result)
+      expect(resolved.properties.items.items).toEqual(result)
     })
   })
 })

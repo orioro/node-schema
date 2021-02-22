@@ -15,6 +15,7 @@ import {
   NUMBER_MULTIPLE_OF,
   ARRAY_MIN_LENGTH,
   ARRAY_MAX_LENGTH,
+  ARRAY_EXACT_LENGTH,
   ARRAY_UNIQUE_ITEMS,
   parseValidationCases,
 } from './parseValidationCases'
@@ -91,11 +92,17 @@ export const objectValidationResolver = (
 
     return Object.keys(schema.properties).reduce(
       (acc, key) => {
+        const propertySchema = schema.properties[key]
+        const propertyValue = isPlainObject(context.value)
+          ? context.value[key]
+          : null
+        const propertyPath = pathJoin(context.path, key)
+
         return [
           ...acc,
-          ...parseValidations(schema.properties[key], context.value, {
+          ...parseValidations(propertySchema, propertyValue, {
             ...context,
-            path: pathJoin(context.path, key),
+            path: propertyPath,
           }),
         ]
       },
@@ -104,39 +111,76 @@ export const objectValidationResolver = (
   },
 ]
 
-/**
- * @todo - Support `items` instead of `itemSchema` and add support for tuples
- */
-export const arrayValidationResolver = (listTypes = ['array']): Alternative => [
-  (schema) => isPlainObject(schema) && listTypes.includes(schema.type),
-  (schema, context) => {
-    //
-    // For each item in the value, resolve thte item schema
-    // and return parsed validations for the specific path
-    //
-    const itemSchema = schema.itemSchema
-
-    const itemValidations = schema.itemSchema
-      ? context.value.reduce((acc, itemValue, index) => {
-          const schema = resolveSchema(itemSchema, {
-            interpreters: context.interpreters,
-            value: itemValue,
-          })
+const _parseItemValidations = (schema, context) => {
+  if (!Array.isArray(context.value)) {
+    return []
+  } else {
+    return isPlainObject(schema.items)
+      ? //
+        // If schema.items is a plain object, treat it as a schema definition:
+        // for each item in the value, resolve thte item schema
+        // and return parsed validations for the specific path
+        //
+        context.value.reduce((acc, itemValue, index) => {
+          /**
+           * @todo parseValidation resolveSchema method being called with no context
+           *                       study better ways of making this call. E.g. expose
+           *                       resolveSchema on context object
+           */
+          const resolvedItemSchema = resolveSchema(schema.items, itemValue)
 
           return [
             ...acc,
-            ...parseValidations(schema, context.value, {
+            ...parseValidations(resolvedItemSchema, itemValue, {
               ...context,
               path: pathJoin(context.path, index),
             }),
           ]
         }, [])
-      : []
+      : Array.isArray(schema.items)
+      ? //
+        // If schema.items is an Array, treat is as a tuple of schema definitions:
+        // For each item schema defined in schema.items, generate validations
+        // for the corresponding paths
+        //
+        schema.items.reduce((acc, itemSchema, index) => {
+          const itemValue = context.value[index]
+
+          /**
+           * @todo parseValidation resolveSchema method being called with no context
+           *                       study better ways of making this call. E.g. expose
+           *                       resolveSchema on context object
+           */
+          const resolvedItemSchema = resolveSchema(itemSchema, itemValue)
+
+          return [
+            ...acc,
+            ...parseValidations(resolvedItemSchema, itemValue, {
+              ...context,
+              path: pathJoin(context.path, index),
+            }),
+          ]
+        }, [])
+      : //
+        // schema.items is neither plain object nor array, simply ignore it
+        //
+        []
+  }
+}
+
+/**
+ * @todo - Support `items` instead of `items` and add support for tuples
+ */
+export const arrayValidationResolver = (listTypes = ['array']): Alternative => [
+  (schema) => isPlainObject(schema) && listTypes.includes(schema.type),
+  (schema, context) => {
+    const itemValidations = _parseItemValidations(schema, context)
 
     const cases = parseValidationCases(schema, [
       ENUM,
       ARRAY_MIN_LENGTH,
       ARRAY_MAX_LENGTH,
+      ARRAY_EXACT_LENGTH,
       ARRAY_UNIQUE_ITEMS,
     ])
 

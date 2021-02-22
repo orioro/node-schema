@@ -50,9 +50,9 @@ export const arrayValueResolver = (arrayTypes = ['array']): ResolverCandidate =>
   _valueResolver(arrayTypes, (schema, context) => {
     const { value } = context
     if (Array.isArray(value)) {
-      return isPlainObject(schema.itemSchema)
-        ? value.map((item) => resolveValue(schema.itemSchema, item, context))
-        : _nItemsArray(value.length, null) // no itemSchema defined
+      return isPlainObject(schema.items)
+        ? value.map((item) => resolveValue(schema.items, item, context))
+        : _nItemsArray(value.length, null) // no items defined
     } else {
       return null
     }
