@@ -189,11 +189,31 @@ describe('array', () => {
     })
   })
 
-  /**
-   * @todo resolveValue convert `items` to `items`
-   */
-  // eslint-disable-next-line
-  test.skip('w/ tuple items', () => {})
+  test('w/ tuple items', () => {
+    const schema = {
+      type: 'array',
+      items: [{ type: 'string' }, { type: 'number' }, { type: 'boolean' }],
+    }
+
+    const expectations = [
+      [
+        ['1', 2, true],
+        ['1', 2, true],
+      ],
+      [
+        ['1', '2', '3'],
+        ['1', null, null],
+      ],
+      [
+        [undefined, undefined, undefined],
+        [null, null, null],
+      ],
+    ]
+
+    expectations.forEach(([input, result]) => {
+      expect(resolveValue(schema, input)).toEqual(result)
+    })
+  })
 
   describe('default', () => {
     test('w/ object items', () => {
@@ -220,8 +240,39 @@ describe('array', () => {
       ).toEqual(['DEFAULT_VALUE'])
     })
 
-    // eslint-disable-next-line
-    test.skip('w/ tuple items', () => {})
+    test('w/ tuple items', () => {
+      const schema = {
+        type: 'array',
+        items: [
+          { type: 'string', default: 'DEFAULT_VALUE' },
+          { type: 'number', default: 10 },
+          { type: 'boolean', default: true },
+        ],
+      }
+
+      const expectations = [
+        [
+          ['1', 2, true],
+          ['1', 2, true],
+        ],
+        [
+          ['1', '2', '3'],
+          ['1', null, null],
+        ],
+        [
+          [undefined, undefined, undefined],
+          ['DEFAULT_VALUE', 10, true],
+        ],
+        [
+          [undefined, 4, undefined],
+          ['DEFAULT_VALUE', 4, true],
+        ],
+      ]
+
+      expectations.forEach(([input, result]) => {
+        expect(resolveValue(schema, input)).toEqual(result)
+      })
+    })
   })
 })
 
