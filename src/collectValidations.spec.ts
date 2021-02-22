@@ -10,14 +10,27 @@ import { schemaTypeExpression } from './expressions'
 import { ALL_EXPRESSIONS } from '@orioro/expression'
 
 import {
-  parseValidations,
-  objectValidationResolver,
-  arrayValidationResolver,
-  defaultValidationResolver,
-  stringValidationResolver,
-} from './parseValidations'
+  resolveSchema as resolveSchema_,
+  schemaResolverObject,
+  schemaResolverArray,
+  schemaResolverExpression,
+} from './resolveSchema'
 
-// const dump = (value) => console.log(JSON.stringify(value, null, '  '))
+import {
+  collectValidations,
+  validationCollectorObject,
+  validationCollectorArray,
+  validationCollectorDefault,
+  validationCollectorString,
+} from './collectValidations'
+
+const resolveSchema = resolveSchema_.bind(null, {
+  resolvers: [
+    schemaResolverExpression(),
+    schemaResolverObject(),
+    schemaResolverArray(),
+  ],
+})
 
 const REQUIRED_ERROR = {
   code: 'REQUIRED_ERROR',
@@ -34,7 +47,7 @@ const interpreters = {
   $schemaType: schemaTypeExpression(),
 }
 
-describe('parseValidations(schema, context) - required / optional', () => {
+describe('collectValidations(schema, context) - required / optional', () => {
   test('required', () => {
     const schema = {
       type: 'string',
@@ -45,9 +58,14 @@ describe('parseValidations(schema, context) - required / optional', () => {
       },
     }
 
-    const validations = parseValidations(schema, undefined, {
-      resolvers: [objectValidationResolver(), defaultValidationResolver()],
-    })
+    const validations = collectValidations(
+      {
+        collectors: [validationCollectorObject(), validationCollectorDefault()],
+        resolveSchema,
+      },
+      schema,
+      undefined
+    )
 
     expect(validations).toEqual([
       {
@@ -82,9 +100,14 @@ describe('parseValidations(schema, context) - required / optional', () => {
       },
     }
 
-    const validations = parseValidations(schema, undefined, {
-      resolvers: [objectValidationResolver(), defaultValidationResolver()],
-    })
+    const validations = collectValidations(
+      {
+        collectors: [validationCollectorObject(), validationCollectorDefault()],
+        resolveSchema,
+      },
+      schema,
+      undefined
+    )
 
     expect(validations).toMatchObject([
       {
@@ -141,9 +164,14 @@ test('string validations', () => {
     },
   }
 
-  const validations = parseValidations(schema, 'Some text', {
-    resolvers: [stringValidationResolver(), defaultValidationResolver()],
-  })
+  const validations = collectValidations(
+    {
+      collectors: [validationCollectorString(), validationCollectorDefault()],
+      resolveSchema,
+    },
+    schema,
+    'Some text'
+  )
 
   expect(validations).toEqual([
     {
@@ -203,16 +231,17 @@ describe('list validations', () => {
   }
 
   test('basic', () => {
-    const validations = parseValidations(
-      schema,
-      ['123', '12345', '1234567', '123456789012345'],
+    const validations = collectValidations(
       {
-        resolvers: [
-          arrayValidationResolver(),
-          stringValidationResolver(),
-          defaultValidationResolver(),
+        collectors: [
+          validationCollectorArray(),
+          validationCollectorString(),
+          validationCollectorDefault(),
         ],
-      }
+        resolveSchema,
+      },
+      schema,
+      ['123', '12345', '1234567', '123456789012345']
     )
 
     expect(validations).toMatchSnapshot()

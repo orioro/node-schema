@@ -1,10 +1,6 @@
 import { isPlainObject } from 'lodash'
 import { nestedMap, ResolverCandidate } from '@orioro/nested-map'
-import { ResolvedSchema, Context } from './types'
-
-type ResolveValueContext = Context & {
-  resolvers?: ResolverCandidate[]
-}
+import { ResolvedSchema } from './types'
 
 const _valueResolver = (types, resolve): ResolverCandidate => [
   (schema) => isPlainObject(schema) && types.includes(schema.type),
@@ -35,7 +31,7 @@ export const objectValueResolver = (
         ? Object.keys(schema.properties).reduce((acc, key) => {
             return {
               ...acc,
-              [key]: resolveValue(schema.properties[key], value[key], context),
+              [key]: resolveValue(context, schema.properties[key], value[key]),
             }
           }, {})
         : {} // no known properties properties
@@ -51,10 +47,10 @@ export const arrayValueResolver = (arrayTypes = ['array']): ResolverCandidate =>
     const { value } = context
     if (Array.isArray(value)) {
       return isPlainObject(schema.items)
-        ? value.map((item) => resolveValue(schema.items, item, context))
+        ? value.map((item) => resolveValue(context, schema.items, item))
         : Array.isArray(schema.items)
         ? schema.items.map((itemSchema, index) =>
-            resolveValue(itemSchema, value[index], context)
+            resolveValue(context, itemSchema, value[index])
           )
         : _nItemsArray(value.length, null) // no items defined
     } else {
@@ -83,25 +79,16 @@ export const defaultValueResolver = (): ResolverCandidate => [
   },
 ]
 
-/**
- * @todo resolveValue Change api: resolveValue(schema, value, context?)
- * @type {[type]}
- */
+export type ResolveValueContext = {
+  resolvers: ResolverCandidate[]
+}
+
 export const resolveValue = (
+  context: ResolveValueContext,
   resolvedSchema: ResolvedSchema,
-  value: any, // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
-  context: ResolveValueContext = {}
-): any => {
-  return nestedMap(resolvedSchema, {
-    resolvers: [
-      objectValueResolver(),
-      arrayValueResolver(),
-      numberValueResolver(),
-      stringValueResolver(),
-      booleanValueResolver(),
-      defaultValueResolver(),
-    ],
+  value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
+): any =>
+  nestedMap(resolvedSchema, {
     ...context,
     value,
   })
-}

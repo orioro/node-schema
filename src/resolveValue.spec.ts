@@ -1,4 +1,23 @@
-import { resolveValue } from './resolveValue'
+import {
+  resolveValue as resolveValue_,
+  objectValueResolver,
+  arrayValueResolver,
+  numberValueResolver,
+  stringValueResolver,
+  booleanValueResolver,
+  defaultValueResolver,
+} from './resolveValue'
+
+const resolveValue = resolveValue_.bind(null, {
+  resolvers: [
+    objectValueResolver(),
+    arrayValueResolver(),
+    numberValueResolver(),
+    stringValueResolver(),
+    booleanValueResolver(),
+    defaultValueResolver(),
+  ],
+})
 
 describe('type casting', () => {
   const expectations: [any, { [key: string]: any }][] = [

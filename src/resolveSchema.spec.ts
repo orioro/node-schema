@@ -1,8 +1,9 @@
 import {
-  resolveSchema,
+  resolveSchema as resolveSchema_,
   schemaResolverObject,
   schemaResolverArray,
   schemaResolverFunction,
+  schemaResolverExpression,
 } from './resolveSchema'
 import { groupBy } from 'lodash'
 
@@ -21,6 +22,14 @@ const states = ['SP', 'RJ', 'MG']
 const citiesByState = groupBy(cities, 'state')
 
 describe('resolveSchema(schema, value, context?) - using schemaResolverFunction', () => {
+  const resolveSchema = resolveSchema_.bind(null, {
+    resolvers: [
+      schemaResolverFunction(),
+      schemaResolverObject(),
+      schemaResolverArray(),
+    ],
+  })
+
   test('basic', () => {
     const schema = {
       type: 'object',
@@ -45,20 +54,22 @@ describe('resolveSchema(schema, value, context?) - using schemaResolverFunction'
     ]
 
     expected.forEach(([value, expectedOptions]) => {
-      expect(
-        resolveSchema(schema, value, {
-          resolvers: [
-            schemaResolverFunction(),
-            schemaResolverObject(),
-            schemaResolverArray(),
-          ],
-        }).properties.city.options
-      ).toEqual(expectedOptions)
+      expect(resolveSchema(schema, value).properties.city.options).toEqual(
+        expectedOptions
+      )
     })
   })
 })
 
 describe('resolveSchema(schema, context) - using expressions', () => {
+  const resolveSchema = resolveSchema_.bind(null, {
+    resolvers: [
+      schemaResolverExpression(),
+      schemaResolverObject(),
+      schemaResolverArray(),
+    ],
+  })
+
   test('example: conditional options', () => {
     const schema = {
       type: 'object',
@@ -140,124 +151,124 @@ describe('resolveSchema(schema, context) - using expressions', () => {
       )
     })
   })
-})
 
-describe('properties whose nested resolution should be skipped by default', () => {
-  test('`validation`', () => {
-    const smallTextValidation = [
-      [['$stringStartsWith', 'small-text:'], 'PREFIX_ERROR'],
-    ]
+  describe('properties whose nested resolution should be skipped by default', () => {
+    test('`validation`', () => {
+      const smallTextValidation = [
+        [['$stringStartsWith', 'small-text:'], 'PREFIX_ERROR'],
+      ]
 
-    const mediumTextValidation = [
-      [['$stringStartsWith', 'medium-text:'], 'PREFIX_ERROR'],
-    ]
+      const mediumTextValidation = [
+        [['$stringStartsWith', 'medium-text:'], 'PREFIX_ERROR'],
+      ]
 
-    const largeTextValidation = [
-      [['$stringStartsWith', 'large-text:'], 'PREFIX_ERROR'],
-    ]
+      const largeTextValidation = [
+        [['$stringStartsWith', 'large-text:'], 'PREFIX_ERROR'],
+      ]
 
-    const schema = {
-      type: 'object',
-      properties: {
-        size: {
-          type: 'string',
-          enum: ['small', 'medium', 'large'],
+      const schema = {
+        type: 'object',
+        properties: {
+          size: {
+            type: 'string',
+            enum: ['small', 'medium', 'large'],
+          },
+          text: {
+            type: 'string',
+            maxLength: [
+              '$switchKey',
+              {
+                small: 100,
+                medium: 500,
+                large: 1000,
+              },
+              100,
+              ['$value', 'size'],
+            ],
+            validation: [
+              '$switchKey',
+              {
+                small: smallTextValidation,
+                medium: mediumTextValidation,
+                large: largeTextValidation,
+              },
+              smallTextValidation,
+              ['$value', 'size'],
+            ],
+          },
         },
-        text: {
+      }
+
+      const expectations = [
+        [{}, 100, smallTextValidation],
+        [{ size: 'small' }, 100, smallTextValidation],
+        [{ size: 'medium' }, 500, mediumTextValidation],
+        [{ size: 'large' }, 1000, largeTextValidation],
+      ]
+
+      expectations.forEach(([input, textMaxLength, textValidation]) => {
+        const resolved = resolveSchema(schema, input)
+
+        expect(resolved.properties.text.maxLength).toEqual(textMaxLength)
+        expect(resolved.properties.text.validation).toEqual(textValidation)
+      })
+    })
+
+    test('`items`', () => {
+      const schemasBySize = {
+        small: {
           type: 'string',
           maxLength: [
-            '$switchKey',
-            {
-              small: 100,
-              medium: 500,
-              large: 1000,
-            },
+            '$switch',
+            [
+              [['$stringStartsWith', 'prefix-1-'], 200],
+              [['$stringStartsWith', 'prefix-2-'], 300],
+              [['$stringStartsWith', 'prefix-3-'], 400],
+            ],
             100,
-            ['$value', 'size'],
-          ],
-          validation: [
-            '$switchKey',
-            {
-              small: smallTextValidation,
-              medium: mediumTextValidation,
-              large: largeTextValidation,
-            },
-            smallTextValidation,
-            ['$value', 'size'],
           ],
         },
-      },
-    }
-
-    const expectations = [
-      [{}, 100, smallTextValidation],
-      [{ size: 'small' }, 100, smallTextValidation],
-      [{ size: 'medium' }, 500, mediumTextValidation],
-      [{ size: 'large' }, 1000, largeTextValidation],
-    ]
-
-    expectations.forEach(([input, textMaxLength, textValidation]) => {
-      const resolved = resolveSchema(schema, input)
-
-      expect(resolved.properties.text.maxLength).toEqual(textMaxLength)
-      expect(resolved.properties.text.validation).toEqual(textValidation)
-    })
-  })
-
-  test('`items`', () => {
-    const schemasBySize = {
-      small: {
-        type: 'string',
-        maxLength: [
-          '$switch',
-          [
-            [['$stringStartsWith', 'prefix-1-'], 200],
-            [['$stringStartsWith', 'prefix-2-'], 300],
-            [['$stringStartsWith', 'prefix-3-'], 400],
-          ],
-          100,
-        ],
-      },
-      medium: {
-        type: 'string',
-        maxLength: 500,
-      },
-      large: {
-        type: 'string',
-        maxLength: 1000,
-      },
-    }
-
-    const schema = {
-      type: 'object',
-      properties: {
-        size: {
+        medium: {
           type: 'string',
-          enum: ['small', 'medium', 'large'],
+          maxLength: 500,
         },
-        items: {
-          type: 'array',
-          items: [
-            '$switchKey',
-            schemasBySize,
-            schemasBySize.small,
-            ['$value', 'size'],
-          ],
+        large: {
+          type: 'string',
+          maxLength: 1000,
         },
-      },
-    }
+      }
 
-    const expectations = [
-      [{}, schemasBySize.small],
-      [{ size: 'small' }, schemasBySize.small],
-      [{ size: 'medium' }, schemasBySize.medium],
-      [{ size: 'large' }, schemasBySize.large],
-    ]
+      const schema = {
+        type: 'object',
+        properties: {
+          size: {
+            type: 'string',
+            enum: ['small', 'medium', 'large'],
+          },
+          items: {
+            type: 'array',
+            items: [
+              '$switchKey',
+              schemasBySize,
+              schemasBySize.small,
+              ['$value', 'size'],
+            ],
+          },
+        },
+      }
 
-    expectations.forEach(([input, result]) => {
-      const resolved = resolveSchema(schema, input)
+      const expectations = [
+        [{}, schemasBySize.small],
+        [{ size: 'small' }, schemasBySize.small],
+        [{ size: 'medium' }, schemasBySize.medium],
+        [{ size: 'large' }, schemasBySize.large],
+      ]
 
-      expect(resolved.properties.items.items).toEqual(result)
+      expectations.forEach(([input, result]) => {
+        const resolved = resolveSchema(schema, input)
+
+        expect(resolved.properties.items.items).toEqual(result)
+      })
     })
   })
 })

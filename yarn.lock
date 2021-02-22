@@ -1529,10 +1529,10 @@
     vinyl-fs "^3.0.3"
     yargs "^16.2.0"
 
-"@orioro/tree-source-nodes@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@orioro/tree-source-nodes/-/tree-source-nodes-1.2.0.tgz#5c6c794693b8189607c752c1044c2f7eedffc960"
-  integrity sha512-ppJ8ZfctZOLOnYpHTp2BSgN4A2iclxTWak/F4v7s5PCbbmsp58YrcpbHO8K9fdRl6xM75Tp4tHOUz/SAnNluIw==
+"@orioro/tree-collect-nodes@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@orioro/tree-collect-nodes/-/tree-collect-nodes-2.0.0.tgz#08491f515256355430a238d7524e00d5d4e38362"
+  integrity sha512-kj+1/6yw6qvi26QkXotvlfLNi4E6ROzPWum0ZK1s+XsO9nYbAdntoCxSoUp23YSPTvcmTrSqToOOgBiQP1Jjkw==
   dependencies:
     "@orioro/cascade" "^3.0.0-beta"
     lodash "^4.17.20"

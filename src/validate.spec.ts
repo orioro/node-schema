@@ -1,10 +1,47 @@
-import { validate } from './validate'
+import { validate as validate_ } from './validate'
+import { schemaTypeExpression } from './expressions'
+import {
+  resolveSchema,
+  schemaResolverExpression,
+  schemaResolverObject,
+  schemaResolverArray,
+} from './resolveSchema'
+import {
+  validationCollectorObject,
+  validationCollectorArray,
+  validationCollectorString,
+  validationCollectorNumber,
+  validationCollectorDefault,
+} from './collectValidations'
+
+import { ALL_EXPRESSIONS } from '@orioro/expression'
 
 import {
   _valueLabel,
   _validationResultLabel,
   _generateTests,
 } from '../test/util/generateTests'
+
+const validate = validate_.bind(null, {
+  collectors: [
+    validationCollectorObject(),
+    validationCollectorArray(),
+    validationCollectorString(),
+    validationCollectorNumber(),
+    validationCollectorDefault(),
+  ],
+  interpreters: {
+    ...ALL_EXPRESSIONS,
+    $schemaType: schemaTypeExpression(),
+  },
+  resolveSchema: resolveSchema.bind(null, {
+    resolvers: [
+      schemaResolverExpression(),
+      schemaResolverObject(),
+      schemaResolverArray(),
+    ],
+  }),
+})
 
 const _validationTestLabel = (inputLabel, resultLabel) =>
   `validate(schema, ${inputLabel}) -> ${resultLabel}`

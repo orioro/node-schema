@@ -1,45 +1,45 @@
 import { get } from 'lodash'
-import { parseValidations } from './parseValidations'
-import { validate as _validate, ValidationErrorSpec } from '@orioro/validate'
-import { ALL_EXPRESSIONS } from '@orioro/expression'
-import { schemaTypeExpression, GetTypeInterface } from './expressions'
+import {
+  collectValidations,
+  ParseValidationsContext,
+} from './collectValidations'
+import { validate as _validate } from '@orioro/validate'
+import { ExpressionInterpreterList } from '@orioro/expression'
 
-import { ResolvedSchema, Context } from './types'
+import { ResolvedSchema, ValidationErrorSpec } from './types'
 
-type ValidateContext = Context & {
-  getType?: GetTypeInterface
+type ValidateContext = ParseValidationsContext & {
+  resolveValue: (schema: ResolvedSchema, value: any) => any
+  interpreters: ExpressionInterpreterList
 }
 
 export const validate = (
+  { collectors, resolveSchema, resolveValue, interpreters }: ValidateContext,
   resolvedSchema: ResolvedSchema,
-  value: any, // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
-  context: ValidateContext = {}
-): null | ValidationErrorSpec[] => {
-  context = {
-    ...context,
-    value,
-  }
-
-  const validations = parseValidations(resolvedSchema, context.value, context)
-
-  const interpreters = {
-    ...ALL_EXPRESSIONS,
-    $schemaType: schemaTypeExpression(context.getType),
-  }
+  value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
+): null | ValidationErrorSpec[] | void => {
+  const validations = collectValidations(
+    {
+      collectors,
+      resolveSchema,
+    },
+    resolvedSchema,
+    value
+  )
 
   const result = validations.reduce(
-    (errors, { path, validationExpression }) => {
-      const pathValue = path === '' ? context.value : get(context.value, path)
+    (allErrors, { path, validationExpression }) => {
+      const pathValue = path === '' ? value : get(value, path)
 
-      const result = _validate(validationExpression, pathValue, {
+      const pathErrors = _validate(validationExpression, pathValue, {
         interpreters,
       })
 
-      return result === null
-        ? errors
+      return pathErrors === null
+        ? allErrors
         : [
-            ...errors,
-            ...result.map((errorSpec) => ({
+            ...allErrors,
+            ...pathErrors.map((errorSpec) => ({
               path, // allow errorSpec to override `path`
               ...errorSpec,
               value: pathValue,

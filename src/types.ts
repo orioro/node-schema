@@ -1,13 +1,6 @@
-import { ExpressionInterpreter, Expression } from '@orioro/expression'
+import { Expression } from '@orioro/expression'
 import { ValidationErrorSpec } from '@orioro/validate'
-import { Node } from '@orioro/tree-source-nodes'
-
-export type Context = {
-  value?: any
-  interpreters?: { [key: string]: ExpressionInterpreter }
-  path?: string
-  [key: string]: any
-}
+import { Node } from '@orioro/tree-collect-nodes'
 
 export type UnresolvedSchema = {
   type: string | Expression
@@ -22,6 +15,8 @@ export type ResolvedSchema = {
   errors?: { [key: string]: ValidationErrorSpec }
   [key: string]: any
 }
+
+export { ValidationErrorSpec }
 
 export type MapSchema = ResolvedSchema & {
   properties: { [key: string]: ResolvedSchema }

@@ -1,10 +1,10 @@
 import { isPlainObject } from 'lodash'
 import { Alternative } from '@orioro/cascade'
 import {
-  NodeResolver,
-  treeSourceNodes,
+  NodeCollector,
+  treeCollectNodes,
   pathJoin,
-} from '@orioro/tree-source-nodes'
+} from '@orioro/tree-collect-nodes'
 import { parallelCases, allowValues, prohibitValues } from '@orioro/validate'
 import {
   ENUM,
@@ -20,16 +20,10 @@ import {
   parseValidationCases,
 } from './parseValidationCases'
 
-import { resolveSchema } from './resolveSchema'
-
 import { Expression } from '@orioro/expression'
 
 import { getError, fnPipe } from './util'
-import { ResolvedSchema, Context, ValidationSpec } from './types'
-
-export type ParseValidationsContext = Context & {
-  resolvers?: NodeResolver[]
-}
+import { UnresolvedSchema, ResolvedSchema, ValidationSpec } from './types'
 
 const _type = (
   schema: ResolvedSchema,
@@ -74,7 +68,7 @@ const _wrapValidationExp = (
 ) =>
   fnPipe(_type.bind(null, schema), _required.bind(null, schema))(validationExp)
 
-export const objectValidationResolver = (
+export const validationCollectorObject = (
   mapTypes = ['object']
 ): Alternative => [
   (schema) =>
@@ -100,10 +94,14 @@ export const objectValidationResolver = (
 
         return [
           ...acc,
-          ...parseValidations(propertySchema, propertyValue, {
-            ...context,
-            path: propertyPath,
-          }),
+          ...collectValidations(
+            {
+              ...context,
+              path: propertyPath,
+            },
+            propertySchema,
+            propertyValue
+          ),
         ]
       },
       [mapValidation]
@@ -122,19 +120,21 @@ const _parseItemValidations = (schema, context) => {
         // and return parsed validations for the specific path
         //
         context.value.reduce((acc, itemValue, index) => {
-          /**
-           * @todo parseValidation resolveSchema method being called with no context
-           *                       study better ways of making this call. E.g. expose
-           *                       resolveSchema on context object
-           */
-          const resolvedItemSchema = resolveSchema(schema.items, itemValue)
+          const resolvedItemSchema = context.resolveSchema(
+            schema.items,
+            itemValue
+          )
 
           return [
             ...acc,
-            ...parseValidations(resolvedItemSchema, itemValue, {
-              ...context,
-              path: pathJoin(context.path, index),
-            }),
+            ...collectValidations(
+              {
+                ...context,
+                path: pathJoin(context.path, index),
+              },
+              resolvedItemSchema,
+              itemValue
+            ),
           ]
         }, [])
       : Array.isArray(schema.items)
@@ -146,19 +146,21 @@ const _parseItemValidations = (schema, context) => {
         schema.items.reduce((acc, itemSchema, index) => {
           const itemValue = context.value[index]
 
-          /**
-           * @todo parseValidation resolveSchema method being called with no context
-           *                       study better ways of making this call. E.g. expose
-           *                       resolveSchema on context object
-           */
-          const resolvedItemSchema = resolveSchema(itemSchema, itemValue)
+          const resolvedItemSchema = context.resolveSchema(
+            itemSchema,
+            itemValue
+          )
 
           return [
             ...acc,
-            ...parseValidations(resolvedItemSchema, itemValue, {
-              ...context,
-              path: pathJoin(context.path, index),
-            }),
+            ...collectValidations(
+              {
+                ...context,
+                path: pathJoin(context.path, index),
+              },
+              resolvedItemSchema,
+              itemValue
+            ),
           ]
         }, [])
       : //
@@ -168,10 +170,9 @@ const _parseItemValidations = (schema, context) => {
   }
 }
 
-/**
- * @todo - Support `items` instead of `items` and add support for tuples
- */
-export const arrayValidationResolver = (listTypes = ['array']): Alternative => [
+export const validationCollectorArray = (
+  listTypes = ['array']
+): Alternative => [
   (schema) => isPlainObject(schema) && listTypes.includes(schema.type),
   (schema, context) => {
     const itemValidations = _parseItemValidations(schema, context)
@@ -194,7 +195,7 @@ export const arrayValidationResolver = (listTypes = ['array']): Alternative => [
   },
 ]
 
-export const _validationResolver = (
+const _validationResolver = (
   types: string[],
   caseResolvers: Alternative[]
 ): Alternative => [
@@ -212,12 +213,12 @@ export const _validationResolver = (
   },
 ]
 
-export const stringValidationResolver = (
+export const validationCollectorString = (
   stringTypes = ['string']
 ): Alternative =>
   _validationResolver(stringTypes, [ENUM, STRING_MIN_LENGTH, STRING_MAX_LENGTH])
 
-export const numberValidationResolver = (
+export const validationCollectorNumber = (
   numberTypes = ['number']
 ): Alternative =>
   _validationResolver(numberTypes, [
@@ -227,7 +228,7 @@ export const numberValidationResolver = (
     NUMBER_MULTIPLE_OF,
   ])
 
-export const defaultValidationResolver = (): Alternative => [
+export const validationCollectorDefault = (): Alternative => [
   (schema, context) => {
     return [
       {
@@ -241,24 +242,17 @@ export const defaultValidationResolver = (): Alternative => [
   },
 ]
 
-const DEFAULT_RESOLVERS = [
-  objectValidationResolver(),
-  arrayValidationResolver(),
-  stringValidationResolver(),
-  numberValidationResolver(),
-  defaultValidationResolver(),
-]
+export type ParseValidationsContext = {
+  collectors: NodeCollector[]
+  resolveSchema: (schema: UnresolvedSchema, value: any) => ResolvedSchema
+}
 
-/**
- * @todo parseValidations substitute treeSourceNodes for treeCollectNodes
- */
-export const parseValidations = (
+export const collectValidations = (
+  context: ParseValidationsContext,
   schema: ResolvedSchema,
-  value: any, // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
-  context: ParseValidationsContext = {}
+  value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
 ): ValidationSpec[] =>
-  treeSourceNodes(schema, {
-    resolvers: DEFAULT_RESOLVERS,
+  treeCollectNodes(schema, {
     ...context,
     value,
   }) as ValidationSpec[]

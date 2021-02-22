@@ -13,11 +13,7 @@ import {
   ExpressionInterpreter,
 } from '@orioro/expression'
 
-import { UnresolvedSchema, ResolvedSchema, Context } from './types'
-
-export type ResolveSchemaContext = Context & {
-  resolvers?: ResolverCandidate[]
-}
+import { UnresolvedSchema, ResolvedSchema } from './types'
 
 export const schemaResolverFunction = (): ResolverCandidate => [
   (value) => typeof value === 'function',
@@ -32,7 +28,7 @@ type SchemaResolverExperssionOptions = {
   skipKeysNested?: string[]
 }
 
-export const schemaResolverExperssion = ({
+export const schemaResolverExpression = ({
   interpreters = ALL_EXPRESSIONS,
   skipKeys = [],
   skipKeysNested = SKIP_NESTED_RESOLUTION_KEYS,
@@ -57,7 +53,7 @@ export const schemaResolverExperssion = ({
         !skipKeysNested.some((key) => context.path.endsWith(key)))
 
     return shouldResolveNested
-      ? resolveSchema(value, context.value, context)
+      ? resolveSchema(context, value, context.value)
       : value
   },
 ]
@@ -66,19 +62,16 @@ export const schemaResolverObject = objectResolver
 
 export const schemaResolverArray = arrayResolver
 
-const DEFAULT_RESOLVERS = [
-  schemaResolverExperssion(),
-  schemaResolverObject(),
-  arrayResolver(),
-]
+export type ResolveSchemaContext = {
+  resolvers: ResolverCandidate[]
+}
 
 export const resolveSchema = (
+  context: ResolveSchemaContext,
   schema: UnresolvedSchema,
-  value: any, // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
-  context: ResolveSchemaContext = {}
+  value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
 ): ResolvedSchema =>
   nestedMap(schema, {
-    value,
-    resolvers: DEFAULT_RESOLVERS,
     ...context,
+    value,
   })
