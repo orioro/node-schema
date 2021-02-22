@@ -39,9 +39,9 @@ export const validate = (
         ? errors
         : [
             ...errors,
-            ...result.map((result) => ({
-              ...result,
-              path,
+            ...result.map((errorSpec) => ({
+              path, // allow errorSpec to override `path`
+              ...errorSpec,
               value: pathValue,
             })),
           ]
