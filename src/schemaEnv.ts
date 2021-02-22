@@ -37,7 +37,7 @@ type SchemaEnvOptions = {
 export const schemaEnv = ({
   getType,
   interpreters = ALL_EXPRESSIONS,
-}: SchemaEnvOptions): {
+}: SchemaEnvOptions = {}): {
   resolveSchema: (schema: UnresolvedSchema, value: any) => ResolvedSchema
   resolveValue: (schema: ResolvedSchema, value: any) => any
   validate: (schema: ResolvedSchema, value: any) => null | ValidationErrorSpec[]
@@ -68,7 +68,7 @@ export const schemaEnv = ({
 
   const validate = validate_.bind(null, {
     interpreters,
-    resolvers: [
+    collectors: [
       validationCollectorObject(),
       validationCollectorArray(),
       validationCollectorString(),

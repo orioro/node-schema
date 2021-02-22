@@ -2,12 +2,14 @@ import { Expression } from '@orioro/expression'
 import { ValidationErrorSpec } from '@orioro/validate'
 import { Node } from '@orioro/tree-collect-nodes'
 
-export type UnresolvedSchema = {
-  type: string | Expression
-  enum?: any[] | Expression
-  errors?: { [key: string]: ValidationErrorSpec } | Expression
-  [key: string]: any
-}
+export type UnresolvedSchema =
+  | Expression
+  | {
+      type: string | Expression
+      enum?: any[] | Expression
+      errors?: { [key: string]: ValidationErrorSpec } | Expression
+      [key: string]: any
+    }
 
 export type ResolvedSchema = {
   type: string
