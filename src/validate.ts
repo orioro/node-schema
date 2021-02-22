@@ -9,12 +9,11 @@ import { ExpressionInterpreterList } from '@orioro/expression'
 import { ResolvedSchema, ValidationErrorSpec } from './types'
 
 type ValidateContext = ParseValidationsContext & {
-  resolveValue: (schema: ResolvedSchema, value: any) => any
   interpreters: ExpressionInterpreterList
 }
 
 export const validate = (
-  { collectors, resolveSchema, resolveValue, interpreters }: ValidateContext,
+  { collectors, resolveSchema, interpreters }: ValidateContext,
   resolvedSchema: ResolvedSchema,
   value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
 ): null | ValidationErrorSpec[] | void => {
