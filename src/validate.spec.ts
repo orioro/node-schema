@@ -362,7 +362,7 @@ describe('array', () => {
     ).toEqual(null)
   })
 
-  test('items: immediately nested values - array -> string', () => {
+  describe('items: immediately nested values - array -> string', () => {
     const schema = {
       type: 'array',
       items: {
@@ -373,15 +373,30 @@ describe('array', () => {
       },
     }
 
-    expect(validate(schema, ['12345', '1234567', '1234567890'])).toEqual(null)
+    const expectations = [
+      [['12345', '1234567', '1234567890'], null],
+      [
+        ['1234', '123', '12345', '12345678901'],
+        [
+          { path: '0', code: 'STRING_MIN_LENGTH_ERROR' },
+          { path: '1', code: 'STRING_MIN_LENGTH_ERROR' },
+          { path: '3', code: 'STRING_MAX_LENGTH_ERROR' },
+        ],
+      ],
+      [
+        [1, '12345', '123'],
+        [
+          { path: '0', code: 'TYPE_ERROR' },
+          { path: '2', code: 'STRING_MIN_LENGTH_ERROR' },
+        ],
+      ],
+    ]
 
-    expect(
-      validate(schema, ['1234', '123', '12345', '12345678901'])
-    ).toMatchObject([
-      { path: '0', code: 'STRING_MIN_LENGTH_ERROR' },
-      { path: '1', code: 'STRING_MIN_LENGTH_ERROR' },
-      { path: '3', code: 'STRING_MAX_LENGTH_ERROR' },
-    ])
+    _generateTests(
+      expectations,
+      (input) => validate(schema, input),
+      _validationTestLabel
+    )
   })
 
   describe('items: nested - array -> object', () => {
@@ -796,142 +811,137 @@ describe('object', () => {
       _validationTestLabel
     )
   })
-})
 
-////////////////////////////////////
-// To be incorporated or removed: //
-////////////////////////////////////
-
-// eslint-disable-next-line jest/no-disabled-tests
-describe.skip('type: object', () => {
-  const schema = {
-    type: 'object',
-    properties: {
-      givenName: {
-        type: 'string',
-        required: true,
+  describe('properties: interdependent values custom validation cases', () => {
+    const schema = {
+      type: 'object',
+      properties: {
+        maxLength: {
+          type: 'number',
+          required: true,
+        },
+        minLength: {
+          type: 'number',
+          required: true,
+        },
+        value: {
+          type: 'string',
+          required: true,
+        },
       },
-      familyName: {
-        type: 'string',
-      },
-      role: {
-        type: 'string',
-        required: true,
-        enum: ['passenger', 'driver'],
-      },
-      age: {
-        type: 'number',
-        required: true,
-      },
-    },
-    validation: [
-      [
+      validation: [
         [
-          '$if',
-          ['$eq', 'driver', ['$value', 'role']],
-          ['$gte', 18, ['$value', 'age']],
-          true,
+          [
+            '$gte',
+            ['$value', 'minLength'],
+            ['$stringLength', ['$value', 'value']],
+          ],
+          { code: 'CUSTOM_MIN_LENGTH_ERROR' },
         ],
-        'DRIVER_MIN_AGE_18',
+        [
+          [
+            '$lte',
+            ['$value', 'maxLength'],
+            ['$stringLength', ['$value', 'value']],
+          ],
+          { code: 'CUSTOM_MAX_LENGTH_ERROR' },
+        ],
       ],
-    ],
-  }
-
-  test('no error', () => {
-    expect(
-      validate(schema, {
-        givenName: 'João',
-        familyName: 'Moreira',
-        role: 'driver',
-        age: 20,
-      })
-    ).toEqual(null)
-  })
-
-  test('REQUIRED_ERROR', () => {
-    expect(validate(schema, {})).toMatchObject([
-      {
-        code: 'REQUIRED_ERROR',
-        path: 'givenName',
-        value: undefined,
-      },
-      {
-        code: 'REQUIRED_ERROR',
-        path: 'role',
-        value: undefined,
-      },
-      {
-        code: 'REQUIRED_ERROR',
-        path: 'age',
-        value: undefined,
-      },
-    ])
-  })
-
-  test('conditional error w/ required error (errors in multiple levels)', () => {
-    const value = {
-      familyName: 'Moreira',
-      role: 'driver',
-      age: 15,
     }
 
-    expect(validate(schema, value)).toMatchObject([
-      {
-        code: 'DRIVER_MIN_AGE_18',
-        path: '',
-        value,
-      },
-      {
-        code: 'REQUIRED_ERROR',
-        path: 'givenName',
-        value: undefined,
-      },
-    ])
+    const expectations = [
+      [{ minLength: 5, maxLength: 10, value: '12345678' }, null],
+      [
+        { minLength: 5, maxLength: 10, value: '123' },
+        [{ code: 'CUSTOM_MIN_LENGTH_ERROR', path: '' }],
+      ],
+      [{ minLength: 3, maxLength: 10, value: '123' }, null],
+      [
+        { minLength: 3, maxLength: 10, value: '12345678901' },
+        [{ code: 'CUSTOM_MAX_LENGTH_ERROR', path: '' }],
+      ],
+    ]
+
+    _generateTests(
+      expectations,
+      (input) => validate(schema, input),
+      _validationTestLabel
+    )
   })
-})
 
-// eslint-disable-next-line jest/no-disabled-tests
-describe.skip('type: array - 1', () => {
-  const schema = {
-    type: 'array',
-    items: {
-      type: 'string',
-      required: true,
-      minLength: 5,
-      maxLength: 10,
-    },
-  }
+  describe('properties: interdependent values custom validation cases - realistic example', () => {
+    const schema = {
+      type: 'object',
+      properties: {
+        givenName: {
+          type: 'string',
+          required: true,
+        },
+        familyName: {
+          type: 'string',
+        },
+        role: {
+          type: 'string',
+          required: true,
+          enum: ['passenger', 'driver'],
+        },
+        age: {
+          type: 'number',
+          required: true,
+        },
+      },
+      validation: [
+        [
+          [
+            '$if',
+            ['$eq', 'driver', ['$value', 'role']],
+            ['$gte', 18, ['$value', 'age']],
+            true,
+          ],
+          {
+            code: 'DRIVER_MIN_AGE_18',
+            // Set path on the error spec
+            path: 'age',
+          },
+        ],
+      ],
+    }
 
-  test('basic', () => {
-    const value = ['123', '12345678', undefined, null, '12345678901234567890']
+    const expectations = [
+      [
+        {
+          givenName: 'João',
+          familyName: 'Silva',
+          role: 'driver',
+          age: 20,
+        },
+        null,
+      ],
+      [
+        {
+          givenName: 'João',
+          familyName: 'Silva',
+          role: 'driver',
+          age: 17,
+        },
+        [{ code: 'DRIVER_MIN_AGE_18', path: 'age' }],
+      ],
+      [
+        {
+          role: 'driver',
+          age: 17,
+        },
+        [
+          { code: 'DRIVER_MIN_AGE_18', path: 'age' },
+          { code: 'REQUIRED_ERROR', path: 'givenName' },
+        ],
+      ],
+    ]
 
-    const result = validate(schema, value, {
-      getType: (value) => {
-        return Array.isArray(value) ? 'array' : undefined
-      },
-    })
-
-    expect(result).toMatchObject([
-      {
-        code: 'STRING_MIN_LENGTH_ERROR',
-        path: '0',
-        value: '123',
-      },
-      {
-        code: 'REQUIRED_ERROR',
-        path: '2',
-        value: undefined,
-      },
-      {
-        code: 'REQUIRED_ERROR',
-        path: '3',
-        value: null,
-      },
-      {
-        code: 'STRING_MAX_LENGTH_ERROR',
-        path: '4',
-        value: '12345678901234567890',
-      },
-    ])
+    _generateTests(
+      expectations,
+      (input) => validate(schema, input),
+      _validationTestLabel
+    )
   })
 })
