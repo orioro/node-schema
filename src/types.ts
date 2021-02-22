@@ -46,7 +46,7 @@ export type NumberSchema = ResolvedSchema & {
 }
 
 export type ValidationSpec = Node & {
-  validation: Expression
+  validationExpression: Expression
 }
 
 export type BuiltInType =

@@ -27,22 +27,27 @@ export const validate = (
     $schemaType: schemaTypeExpression(context.getType),
   }
 
-  const result = validations.reduce((errors, { path, validation }) => {
-    const pathValue = path === '' ? context.value : get(context.value, path)
+  const result = validations.reduce(
+    (errors, { path, validationExpression }) => {
+      const pathValue = path === '' ? context.value : get(context.value, path)
 
-    const result = _validate(validation, pathValue, { interpreters })
+      const result = _validate(validationExpression, pathValue, {
+        interpreters,
+      })
 
-    return result === null
-      ? errors
-      : [
-          ...errors,
-          ...result.map((result) => ({
-            ...result,
-            path,
-            value: pathValue,
-          })),
-        ]
-  }, [])
+      return result === null
+        ? errors
+        : [
+            ...errors,
+            ...result.map((result) => ({
+              ...result,
+              path,
+              value: pathValue,
+            })),
+          ]
+    },
+    []
+  )
 
   return result.length === 0 ? null : result
 }

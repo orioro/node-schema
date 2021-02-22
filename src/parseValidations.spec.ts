@@ -52,12 +52,11 @@ describe('parseValidations(schema, context) - required / optional', () => {
     expect(validations).toEqual([
       {
         path: '',
-        validation: prohibitValues([null, undefined], REQUIRED_ERROR, [
-          '$if',
-          ['$notEq', 'string', ['$schemaType']],
-          TYPE_ERROR,
-          null,
-        ]),
+        validationExpression: prohibitValues(
+          [null, undefined],
+          REQUIRED_ERROR,
+          ['$if', ['$notEq', 'string', ['$schemaType']], TYPE_ERROR, null]
+        ),
       },
     ])
 
@@ -70,7 +69,7 @@ describe('parseValidations(schema, context) - required / optional', () => {
 
     expectations.forEach(([input, expected]) => {
       expect(
-        validate(validations[0].validation, input, { interpreters })
+        validate(validations[0].validationExpression, input, { interpreters })
       ).toEqual(expected)
     })
   })
@@ -90,7 +89,7 @@ describe('parseValidations(schema, context) - required / optional', () => {
     expect(validations).toMatchObject([
       {
         path: '',
-        validation: allowValues(
+        validationExpression: allowValues(
           [null, undefined],
           [
             '$if',
@@ -111,7 +110,7 @@ describe('parseValidations(schema, context) - required / optional', () => {
 
     expectations.forEach(([input, expected]) => {
       expect(
-        validate(validations[0].validation, input, { interpreters })
+        validate(validations[0].validationExpression, input, { interpreters })
       ).toEqual(expected)
     })
   })
@@ -149,7 +148,7 @@ test('string validations', () => {
   expect(validations).toEqual([
     {
       path: '',
-      validation: prohibitValues([null, undefined], REQUIRED_ERROR, [
+      validationExpression: prohibitValues([null, undefined], REQUIRED_ERROR, [
         '$if',
         ['$notEq', 'string', ['$schemaType']],
         TYPE_ERROR,
@@ -173,7 +172,7 @@ test('string validations', () => {
 
   expectations.forEach(([input, expected]) => {
     expect(
-      validate(validations[0].validation, input, { interpreters })
+      validate(validations[0].validationExpression, input, { interpreters })
     ).toEqual(expected)
   })
 })

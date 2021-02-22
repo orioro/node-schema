@@ -84,7 +84,7 @@ export const objectValidationResolver = (
   (schema, context) => {
     const mapValidation = {
       path: context.path,
-      validation: _wrapValidationExp(
+      validationExpression: _wrapValidationExp(
         schema,
         _casesValidationExp(schema, [ENUM])
       ),
@@ -187,7 +187,7 @@ export const arrayValidationResolver = (listTypes = ['array']): Alternative => [
     return [
       {
         path: context.path,
-        validation: _wrapValidationExp(schema, parallelCases(cases)),
+        validationExpression: _wrapValidationExp(schema, parallelCases(cases)),
       },
       ...itemValidations,
     ]
@@ -203,7 +203,7 @@ export const _validationResolver = (
     return [
       {
         path: context.path,
-        validation: _wrapValidationExp(
+        validationExpression: _wrapValidationExp(
           schema,
           _casesValidationExp(schema, caseResolvers)
         ),
@@ -232,7 +232,7 @@ export const defaultValidationResolver = (): Alternative => [
     return [
       {
         path: context.path,
-        validation: _wrapValidationExp(
+        validationExpression: _wrapValidationExp(
           schema,
           _casesValidationExp(schema, [ENUM])
         ),
