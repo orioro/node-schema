@@ -3,7 +3,7 @@ import {
   collectValidations,
   ParseValidationsContext,
 } from './collectValidations'
-import { validate as _validate } from '@orioro/validate'
+import { validate as _validate, ValidationError } from '@orioro/validate'
 import { ExpressionInterpreterList } from '@orioro/expression'
 
 import { ResolvedSchema, ValidationErrorSpec } from './types'
@@ -16,7 +16,7 @@ export const validate = (
   { collectors, resolveSchema, interpreters }: ValidateContext,
   resolvedSchema: ResolvedSchema,
   value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
-): null | ValidationErrorSpec[] | void => {
+): null | ValidationErrorSpec[] => {
   const validations = collectValidations(
     {
       collectors,
@@ -50,3 +50,23 @@ export const validate = (
 
   return result.length === 0 ? null : result
 }
+
+/**
+ * Performs same validation process as `validate` but if an error
+ * is encountered throws a `ValidationError`.
+ *
+ * @function validateThrow
+ */
+export const validateThrow = (
+  context: ValidateContext,
+  resolvedSchema: ResolvedSchema,
+  value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
+): void => {
+  const errors = validate(context, resolvedSchema, value)
+
+  if (errors !== null) {
+    throw new ValidationError(errors, value)
+  }
+}
+
+export { ValidationError }

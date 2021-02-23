@@ -15,7 +15,10 @@ import {
   defaultValueResolver,
 } from './resolveValue'
 
-import { validate as validate_ } from './validate'
+import {
+  validate as validate_,
+  validateThrow as validateThrow_,
+} from './validate'
 import { schemaTypeExpression, GetTypeInterface } from './expressions'
 import {
   validationCollectorObject,
@@ -41,6 +44,7 @@ export const schemaEnv = ({
   resolveSchema: (schema: UnresolvedSchema, value: any) => ResolvedSchema
   resolveValue: (schema: ResolvedSchema, value: any) => any
   validate: (schema: ResolvedSchema, value: any) => null | ValidationErrorSpec[]
+  validateThrow: (schema: ResolvedSchema, value: any) => void
 } => {
   interpreters = {
     ...interpreters,
@@ -66,7 +70,7 @@ export const schemaEnv = ({
     ],
   })
 
-  const validate = validate_.bind(null, {
+  const validateContext = {
     interpreters,
     collectors: [
       validationCollectorObject(),
@@ -76,11 +80,15 @@ export const schemaEnv = ({
       validationCollectorDefault(),
     ],
     resolveSchema,
-  })
+  }
+
+  const validate = validate_.bind(null, validateContext)
+  const validateThrow = validateThrow_.bind(null, validateContext)
 
   return {
     resolveSchema,
     resolveValue,
     validate,
+    validateThrow,
   }
 }

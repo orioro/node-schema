@@ -1,4 +1,8 @@
-import { validate as validate_ } from './validate'
+import {
+  validate as validate_,
+  validateThrow as validateThrow_,
+  ValidationError,
+} from './validate'
 import { schemaTypeExpression } from './expressions'
 import {
   resolveSchema,
@@ -22,7 +26,7 @@ import {
   _generateTests,
 } from '../test/util/generateTests'
 
-const validate = validate_.bind(null, {
+const context = {
   collectors: [
     validationCollectorObject(),
     validationCollectorArray(),
@@ -41,7 +45,10 @@ const validate = validate_.bind(null, {
       schemaResolverArray(),
     ],
   }),
-})
+}
+
+const validate = validate_.bind(null, context)
+const validateThrow = validateThrow_.bind(null, context)
 
 const _validationTestLabel = (inputLabel, resultLabel) =>
   `validate(schema, ${inputLabel}) -> ${resultLabel}`
@@ -993,4 +1000,14 @@ describe('object', () => {
       _validationTestLabel
     )
   })
+})
+
+test('validateThrow', () => {
+  const schema = {
+    type: 'string',
+    minLength: 5,
+  }
+
+  expect(validateThrow(schema, '12345')).toEqual(undefined)
+  expect(() => validateThrow(schema, '1234')).toThrow(ValidationError)
 })
