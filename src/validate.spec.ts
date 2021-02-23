@@ -9,6 +9,7 @@ import {
   schemaResolverExpression,
   schemaResolverObject,
   schemaResolverArray,
+  schemaResolverDefault,
 } from './resolveSchema'
 import {
   validationCollectorObject,
@@ -45,6 +46,7 @@ const context = {
       schemaResolverExpression(),
       schemaResolverObject(),
       schemaResolverArray(),
+      schemaResolverDefault(),
     ],
   }),
 }
@@ -389,7 +391,7 @@ describe('array', () => {
         { key1: 'value1', key2: 'value2' },
       ])
     ).toMatchObject([{ code: 'ARRAY_UNIQUE_ITEMS_ERROR' }])
-    
+
     expect(
       validate(schema, [
         { key1: 'value1', key2: 'value2' },

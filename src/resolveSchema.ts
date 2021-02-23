@@ -4,6 +4,7 @@ import {
   nestedMap,
   objectResolver,
   arrayResolver,
+  defaultResolver,
 } from '@orioro/nested-map'
 
 import {
@@ -73,6 +74,11 @@ export const schemaResolverObject = objectResolver
  * @function schemaResolverArray
  */
 export const schemaResolverArray = arrayResolver
+
+/**
+ * @function schemaResolverDefault
+ */
+export const schemaResolverDefault = defaultResolver
 
 export type ResolveSchemaContext = {
   resolvers: ResolverCandidate[]

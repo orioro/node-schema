@@ -3,6 +3,7 @@ import {
   schemaResolverObject,
   schemaResolverArray,
   schemaResolverExpression,
+  schemaResolverDefault,
 } from './resolveSchema'
 
 import {
@@ -74,6 +75,7 @@ export const schemaEnv = ({
           schemaResolverExpression({ interpreters }),
           schemaResolverObject(),
           schemaResolverArray(),
+          schemaResolverDefault(),
         ],
   })
 

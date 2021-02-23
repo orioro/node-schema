@@ -97,6 +97,24 @@ export const defaultValueResolver = (): ResolverCandidate => [
   },
 ]
 
+// export const defaultValueResolver = (types): ResolverCandidate => [
+//   (schema, context) => {
+
+//     if (context.value === null) {
+//       return null
+//     } else if (context.value === undefined) {
+//       return schema.default === undefined
+//         ? null
+//         : resolve(schema, {
+//             ...context,
+//             value: schema.default,
+//           })
+//     } else {
+//       return resolve(schema, context)
+//     }
+//   }
+// ]
+
 export type ResolveValueContext = {
   resolvers: ResolverCandidate[]
 }

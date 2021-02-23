@@ -14,6 +14,7 @@ import {
   schemaResolverObject,
   schemaResolverArray,
   schemaResolverExpression,
+  schemaResolverDefault,
 } from './resolveSchema'
 
 import {
@@ -29,6 +30,7 @@ const resolveSchema = resolveSchema_.bind(null, {
     schemaResolverExpression(),
     schemaResolverObject(),
     schemaResolverArray(),
+    schemaResolverDefault(),
   ],
 })
 

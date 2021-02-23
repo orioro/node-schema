@@ -4,6 +4,7 @@ import {
   schemaResolverArray,
   schemaResolverFunction,
   schemaResolverExpression,
+  schemaResolverDefault,
 } from './resolveSchema'
 import { groupBy } from 'lodash'
 
@@ -25,6 +26,7 @@ describe('resolveSchema(schema, value, context?) - using schemaResolverFunction'
       schemaResolverFunction(),
       schemaResolverObject(),
       schemaResolverArray(),
+      schemaResolverDefault(),
     ],
   })
 
@@ -65,6 +67,7 @@ describe('resolveSchema(schema, context) - using expressions', () => {
       schemaResolverExpression(),
       schemaResolverObject(),
       schemaResolverArray(),
+      schemaResolverDefault(),
     ],
   })
 

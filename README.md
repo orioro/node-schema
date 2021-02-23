@@ -133,6 +133,7 @@ For validate: if validate method "auto resolves" the received value, it would va
 - [`schemaResolverExpression()`](#schemaresolverexpression)
 - [`schemaResolverObject()`](#schemaresolverobject)
 - [`schemaResolverArray()`](#schemaresolverarray)
+- [`schemaResolverDefault()`](#schemaresolverdefault)
 - [`resolveSchema()`](#resolveschema)
 - [`objectValueResolver()`](#objectvalueresolver)
 - [`arrayValueResolver()`](#arrayvalueresolver)
@@ -242,6 +243,10 @@ For validate: if validate method "auto resolves" the received value, it would va
 
 
 ##### `schemaResolverArray()`
+
+
+
+##### `schemaResolverDefault()`
 
 
 

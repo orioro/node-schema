@@ -1512,10 +1512,10 @@
     lodash "^4.17.20"
     luxon "^1.25.0"
 
-"@orioro/nested-map@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@orioro/nested-map/-/nested-map-1.2.0.tgz#5932ac15d5a70b95aa551ea879fb1e119b2fc1e1"
-  integrity sha512-B7iVqrEX7/L2MID8oXp38+/RMzaKZQ1+G8QoE/V+V3I+LZos1lmaNBhsAPjppLG4PPUMAQGrCLydq8MK3sIkKg==
+"@orioro/nested-map@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@orioro/nested-map/-/nested-map-2.0.0.tgz#1948bfeeba5a3dba039837e6ae653692353998eb"
+  integrity sha512-esswpQtZqYW3544INdgFjL6UzcJSX3JA5gCutfb5Kcn9pYLHPe0CXnVZl6K5svATdgPVJrcix0k+7A0wIE3mRg==
   dependencies:
     "@orioro/cascade" "^3.0.0-beta.1"
     lodash "^4.17.20"
