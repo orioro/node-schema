@@ -389,11 +389,7 @@ describe('array', () => {
         { key1: 'value1', key2: 'value2' },
       ])
     ).toMatchObject([{ code: 'ARRAY_UNIQUE_ITEMS_ERROR' }])
-
-    /**
-     * @todo validate This test will probably fail when we introduce the resolution step inside
-     *                validate method.
-     */
+    
     expect(
       validate(schema, [
         { key1: 'value1', key2: 'value2' },

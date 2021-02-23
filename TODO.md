@@ -1,1 +1,2 @@
-
+- expressions          | better integrate $schemaType expression with built-in $type (src/expressions.ts)
+- parseValidationCases | Tests for custom validation errors defined in schema (src/parseValidationCases.ts)

@@ -103,4 +103,205 @@ for example: expression interpreters can be shared throughout all steps and it w
 a strange behavior if one expression was available in one step but unavailable on the other.
 On the other hand, exactly that case might be useful in some more complex situations (e.g. when some expression should be available on schemaResolution step but not on the validation step), but they should be explicitly declared.
 
+## No 'autoresolution' - require that both schema and value provided be explicitly resolved/unresolved
+
+For validate: if validate method "auto resolves" the received value, it would validate a value that is different from its input, thus it must validate exactly against its raw input
+
 # API Docs
+
+- [`validationCollectorObject()`](#validationcollectorobject)
+- [`validationCollectorArray()`](#validationcollectorarray)
+- [`validationCollectorString()`](#validationcollectorstring)
+- [`validationCollectorNumber()`](#validationcollectornumber)
+- [`validationCollectorBoolean()`](#validationcollectorboolean)
+- [`validationCollectorDefault()`](#validationcollectordefault)
+- [`collectValidations()`](#collectvalidations)
+- [`schemaTypeExpression()`](#schematypeexpression)
+- [`ENUM`](#enum)
+- [`STRING_MIN_LENGTH`](#string_min_length)
+- [`STRING_MAX_LENGTH`](#string_max_length)
+- [`NUMBER_MIN`](#number_min)
+- [`NUMBER_MAX`](#number_max)
+- [`NUMBER_MULTIPLE_OF`](#number_multiple_of)
+- [`ARRAY_MIN_LENGTH`](#array_min_length)
+- [`ARRAY_MAX_LENGTH`](#array_max_length)
+- [`ARRAY_EXACT_LENGTH`](#array_exact_length)
+- [`ARRAY_UNIQUE_ITEMS`](#array_unique_items)
+- [`OBJECT_UNKNOWN_PROPERTIES`](#object_unknown_properties)
+- [`parseValidationCases()`](#parsevalidationcases)
+- [`schemaResolverFunction()`](#schemaresolverfunction)
+- [`schemaResolverExpression()`](#schemaresolverexpression)
+- [`schemaResolverObject()`](#schemaresolverobject)
+- [`schemaResolverArray()`](#schemaresolverarray)
+- [`resolveSchema()`](#resolveschema)
+- [`objectValueResolver()`](#objectvalueresolver)
+- [`arrayValueResolver()`](#arrayvalueresolver)
+- [`numberValueResolver()`](#numbervalueresolver)
+- [`stringValueResolver()`](#stringvalueresolver)
+- [`booleanValueResolver()`](#booleanvalueresolver)
+- [`defaultValueResolver()`](#defaultvalueresolver)
+- [`schemaEnv()`](#schemaenv)
+- [`UnresolvedSchema`](#unresolvedschema)
+- [`ResolvedSchema`](#resolvedschema)
+- [`ValidationSpec`](#validationspec)
+- [`BuiltInType`](#builtintype)
+- [`validate()`](#validate)
+- [`validateThrow()`](#validatethrow)
+- [`ValidationError`](#validationerror)
+
+##### `validationCollectorObject()`
+
+
+
+##### `validationCollectorArray()`
+
+
+
+##### `validationCollectorString()`
+
+
+
+##### `validationCollectorNumber()`
+
+
+
+##### `validationCollectorBoolean()`
+
+
+
+##### `validationCollectorDefault()`
+
+
+
+##### `collectValidations()`
+
+
+
+##### `schemaTypeExpression()`
+
+
+
+##### `ENUM`
+
+
+
+##### `STRING_MIN_LENGTH`
+
+
+
+##### `STRING_MAX_LENGTH`
+
+
+
+##### `NUMBER_MIN`
+
+
+
+##### `NUMBER_MAX`
+
+
+
+##### `NUMBER_MULTIPLE_OF`
+
+
+
+##### `ARRAY_MIN_LENGTH`
+
+
+
+##### `ARRAY_MAX_LENGTH`
+
+
+
+##### `ARRAY_EXACT_LENGTH`
+
+
+
+##### `ARRAY_UNIQUE_ITEMS`
+
+
+
+##### `OBJECT_UNKNOWN_PROPERTIES`
+
+
+
+##### `parseValidationCases()`
+
+
+
+##### `schemaResolverFunction()`
+
+
+
+##### `schemaResolverExpression()`
+
+
+
+##### `schemaResolverObject()`
+
+
+
+##### `schemaResolverArray()`
+
+
+
+##### `resolveSchema()`
+
+
+
+##### `objectValueResolver()`
+
+
+
+##### `arrayValueResolver()`
+
+
+
+##### `numberValueResolver()`
+
+
+
+##### `stringValueResolver()`
+
+
+
+##### `booleanValueResolver()`
+
+
+
+##### `defaultValueResolver()`
+
+
+
+##### `schemaEnv()`
+
+
+
+##### `UnresolvedSchema`
+
+
+
+##### `ResolvedSchema`
+
+
+
+##### `ValidationSpec`
+
+
+
+##### `BuiltInType`
+
+
+
+##### `validate()`
+
+
+
+##### `validateThrow()`
+
+Performs same validation process as `validate` but if an error
+is encountered throws a `ValidationError`.
+
+
+
+##### `ValidationError`

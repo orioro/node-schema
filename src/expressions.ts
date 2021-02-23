@@ -6,6 +6,7 @@ export type GetTypeInterface = (value: any) => string | void
 
 /**
  * @todo expressions better integrate $schemaType expression with built-in $type
+ * @function schemaTypeExpression
  */
 export const schemaTypeExpression = (
   getType: GetTypeInterface = _getType

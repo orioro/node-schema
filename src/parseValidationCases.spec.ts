@@ -5,9 +5,6 @@ import {
   NUMBER_MIN,
   NUMBER_MAX,
   NUMBER_MULTIPLE_OF,
-  // ARRAY_MAX_LENGTH,
-  // ARRAY_MIN_LENGTH,
-  // ARRAY_UNIQUE_ITEMS,
   parseValidationCases,
 } from './parseValidationCases'
 

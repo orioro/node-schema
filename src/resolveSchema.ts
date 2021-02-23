@@ -15,6 +15,9 @@ import {
 
 import { UnresolvedSchema, ResolvedSchema } from './types'
 
+/**
+ * @function schemaResolverFunction
+ */
 export const schemaResolverFunction = (): ResolverCandidate => [
   (value) => typeof value === 'function',
   (func, context) => func(context.value),
@@ -28,6 +31,9 @@ type SchemaResolverExperssionOptions = {
   skipKeysNested?: string[]
 }
 
+/**
+ * @function schemaResolverExpression
+ */
 export const schemaResolverExpression = ({
   interpreters = ALL_EXPRESSIONS,
   skipKeys = [],
@@ -58,14 +64,23 @@ export const schemaResolverExpression = ({
   },
 ]
 
+/**
+ * @function schemaResolverObject
+ */
 export const schemaResolverObject = objectResolver
 
+/**
+ * @function schemaResolverArray
+ */
 export const schemaResolverArray = arrayResolver
 
 export type ResolveSchemaContext = {
   resolvers: ResolverCandidate[]
 }
 
+/**
+ * @function resolveSchema
+ */
 export const resolveSchema = (
   context: ResolveSchemaContext,
   schema: UnresolvedSchema,

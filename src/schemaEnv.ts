@@ -47,6 +47,9 @@ type SchemaEnvOptions = {
   validationCollectors?: NodeCollector[]
 }
 
+/**
+ * @function schemaEnv
+ */
 export const schemaEnv = ({
   getType,
   interpreters = ALL_EXPRESSIONS,

@@ -20,6 +20,9 @@ const _valueResolver = (types, resolve): ResolverCandidate => [
   },
 ]
 
+/**
+ * @function objectValueResolver
+ */
 export const objectValueResolver = (
   objectTypes = ['object']
 ): ResolverCandidate =>
@@ -42,6 +45,9 @@ export const objectValueResolver = (
 
 const _nItemsArray = (n, itemValue) => Array(n).fill(itemValue)
 
+/**
+ * @function arrayValueResolver
+ */
 export const arrayValueResolver = (arrayTypes = ['array']): ResolverCandidate =>
   _valueResolver(arrayTypes, (schema, context) => {
     const { value } = context
@@ -58,21 +64,33 @@ export const arrayValueResolver = (arrayTypes = ['array']): ResolverCandidate =>
     }
   })
 
+/**
+ * @function numberValueResolver
+ */
 export const numberValueResolver = (): ResolverCandidate =>
   _valueResolver(['number'], (schema, { value }) =>
     typeof value === 'number' && !isNaN(value) ? value : null
   )
 
+/**
+ * @function stringValueResolver
+ */
 export const stringValueResolver = (): ResolverCandidate =>
   _valueResolver(['string'], (schema, { value }) =>
     typeof value === 'string' ? value : null
   )
 
+/**
+ * @function booleanValueResolver
+ */
 export const booleanValueResolver = (): ResolverCandidate =>
   _valueResolver(['boolean'], (schema, { value }) =>
     typeof value === 'boolean' ? value : null
   )
 
+/**
+ * @function defaultValueResolver
+ */
 export const defaultValueResolver = (): ResolverCandidate => [
   (schema) => {
     throw new Error(`Unknown type ${schema && schema.type}`)

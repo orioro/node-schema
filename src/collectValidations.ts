@@ -63,6 +63,9 @@ const _wrapValidationExp = (
 ) =>
   fnPipe(_type.bind(null, schema), _required.bind(null, schema))(validationExp)
 
+/**
+ * @function validationCollectorObject
+ */
 export const validationCollectorObject = (
   objectTypes = ['object'],
   caseAlteratives = DEFAULT_OBJECT_CASES
@@ -167,6 +170,9 @@ const _parseItemValidations = (schema, context) => {
   }
 }
 
+/**
+ * @function validationCollectorArray
+ */
 export const validationCollectorArray = (
   listTypes = ['array'],
   caseAlteratives = DEFAULT_ARRAY_CASES
@@ -205,21 +211,33 @@ const _validationResolver = (
   },
 ]
 
+/**
+ * @function validationCollectorString
+ */
 export const validationCollectorString = (
   stringTypes = ['string'],
   caseAlteratives = DEFAULT_STRING_CASES
 ): NodeCollector => _validationResolver(stringTypes, caseAlteratives)
 
+/**
+ * @function validationCollectorNumber
+ */
 export const validationCollectorNumber = (
   numberTypes = ['number'],
   caseAlteratives = DEFAULT_NUMBER_CASES
 ): NodeCollector => _validationResolver(numberTypes, caseAlteratives)
 
+/**
+ * @function validationCollectorBoolean
+ */
 export const validationCollectorBoolean = (
   booleanTypes = ['boolean'],
   caseAlteratives = DEFAULT_BOOLEAN_CASES
 ): NodeCollector => _validationResolver(booleanTypes, caseAlteratives)
 
+/**
+ * @function validationCollectorDefault
+ */
 export const validationCollectorDefault = (): NodeCollector => [
   (schema) => {
     throw new Error(`Validation collection failed. Unknown type ${schema.type}`)
@@ -231,6 +249,9 @@ export type ParseValidationsContext = NodeCollectorContext & {
   resolveSchema: (schema: UnresolvedSchema, value: any) => ResolvedSchema
 }
 
+/**
+ * @function collectValidations
+ */
 export const collectValidations = (
   context: ParseValidationsContext,
   schema: ResolvedSchema,

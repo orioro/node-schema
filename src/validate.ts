@@ -12,6 +12,9 @@ type ValidateContext = ParseValidationsContext & {
   interpreters: ExpressionInterpreterList
 }
 
+/**
+ * @function validate
+ */
 export const validate = (
   { collectors, resolveSchema, interpreters }: ValidateContext,
   resolvedSchema: ResolvedSchema,
@@ -69,4 +72,9 @@ export const validateThrow = (
   }
 }
 
-export { ValidationError }
+export {
+  /**
+   * @constructor ValidationError
+   */
+  ValidationError,
+}

@@ -4,6 +4,10 @@ import { ValidationCase } from '@orioro/validate'
 import { getError } from './util'
 import { ResolvedSchema } from './types'
 
+/**
+ * @todo parseValidationCases Tests for custom validation errors defined in schema
+ * @const ENUM
+ */
 export const ENUM: Alternative = [
   (schema: ResolvedSchema): boolean => Array.isArray(schema.enum),
   (schema: ResolvedSchema): ValidationCase => {
@@ -19,6 +23,9 @@ export const ENUM: Alternative = [
   },
 ]
 
+/**
+ * @const STRING_MIN_LENGTH
+ */
 export const STRING_MIN_LENGTH: Alternative = [
   (schema: ResolvedSchema): boolean => typeof schema.minLength === 'number',
   (schema: ResolvedSchema): ValidationCase => [
@@ -29,6 +36,9 @@ export const STRING_MIN_LENGTH: Alternative = [
   ],
 ]
 
+/**
+ * @const STRING_MAX_LENGTH
+ */
 export const STRING_MAX_LENGTH: Alternative = [
   (schema: ResolvedSchema): boolean => typeof schema.maxLength === 'number',
   (schema: ResolvedSchema): ValidationCase => [
@@ -39,6 +49,9 @@ export const STRING_MAX_LENGTH: Alternative = [
   ],
 ]
 
+/**
+ * @const NUMBER_MIN
+ */
 export const NUMBER_MIN: Alternative = [
   (schema: ResolvedSchema): boolean =>
     typeof schema.min === 'number' || typeof schema.minExclusive === 'number',
@@ -52,6 +65,9 @@ export const NUMBER_MIN: Alternative = [
   ],
 ]
 
+/**
+ * @const NUMBER_MAX
+ */
 export const NUMBER_MAX: Alternative = [
   (schema: ResolvedSchema): boolean =>
     typeof schema.max === 'number' || typeof schema.maxExclusive === 'number',
@@ -65,6 +81,9 @@ export const NUMBER_MAX: Alternative = [
   ],
 ]
 
+/**
+ * @const NUMBER_MULTIPLE_OF
+ */
 export const NUMBER_MULTIPLE_OF: Alternative = [
   (schema: ResolvedSchema): boolean => typeof schema.multipleOf === 'number',
   (schema: ResolvedSchema): ValidationCase => [
@@ -75,6 +94,9 @@ export const NUMBER_MULTIPLE_OF: Alternative = [
   ],
 ]
 
+/**
+ * @const ARRAY_MIN_LENGTH
+ */
 export const ARRAY_MIN_LENGTH: Alternative = [
   (schema: ResolvedSchema): boolean => typeof schema.minLength === 'number',
   (schema: ResolvedSchema): ValidationCase => [
@@ -85,6 +107,9 @@ export const ARRAY_MIN_LENGTH: Alternative = [
   ],
 ]
 
+/**
+ * @const ARRAY_MAX_LENGTH
+ */
 export const ARRAY_MAX_LENGTH: Alternative = [
   (schema: ResolvedSchema): boolean => typeof schema.maxLength === 'number',
   (schema: ResolvedSchema): ValidationCase => [
@@ -95,6 +120,9 @@ export const ARRAY_MAX_LENGTH: Alternative = [
   ],
 ]
 
+/**
+ * @const ARRAY_EXACT_LENGTH
+ */
 export const ARRAY_EXACT_LENGTH: Alternative = [
   (schema: ResolvedSchema): boolean =>
     typeof schema.exactLength === 'number' || Array.isArray(schema.items),
@@ -112,6 +140,9 @@ export const ARRAY_EXACT_LENGTH: Alternative = [
   ],
 ]
 
+/**
+ * @const ARRAY_UNIQUE_ITEMS
+ */
 export const ARRAY_UNIQUE_ITEMS: Alternative = [
   (schema: ResolvedSchema): boolean => Boolean(schema.uniqueItems),
   (schema: ResolvedSchema): ValidationCase => [
@@ -134,6 +165,9 @@ export const ARRAY_UNIQUE_ITEMS: Alternative = [
   ],
 ]
 
+/**
+ * @const OBJECT_UNKNOWN_PROPERTIES
+ */
 export const OBJECT_UNKNOWN_PROPERTIES: Alternative = [
   (schema: ResolvedSchema): ValidationCase => [
     [
@@ -147,6 +181,9 @@ export const OBJECT_UNKNOWN_PROPERTIES: Alternative = [
   ],
 ]
 
+/**
+ * @function parseValidationCases
+ */
 export const parseValidationCases = (
   schema: ResolvedSchema,
   caseAlternatives: Alternative[]
