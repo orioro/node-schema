@@ -60,7 +60,11 @@ describe('collectValidations(schema, context) - required / optional', () => {
 
     const validations = collectValidations(
       {
-        collectors: [validationCollectorObject(), validationCollectorDefault()],
+        collectors: [
+          validationCollectorObject(),
+          validationCollectorString(),
+          validationCollectorDefault(),
+        ],
         resolveSchema,
       },
       schema,
@@ -102,7 +106,11 @@ describe('collectValidations(schema, context) - required / optional', () => {
 
     const validations = collectValidations(
       {
-        collectors: [validationCollectorObject(), validationCollectorDefault()],
+        collectors: [
+          validationCollectorObject(),
+          validationCollectorString(),
+          validationCollectorDefault(),
+        ],
         resolveSchema,
       },
       schema,
@@ -205,7 +213,7 @@ test('string validations', () => {
   })
 })
 
-describe('list validations', () => {
+describe('array validations', () => {
   const MIN_LENGTH_ERROR = {
     code: 'MIN_LENGTH_ERROR',
   }
@@ -215,7 +223,7 @@ describe('list validations', () => {
   }
 
   const schema = {
-    type: 'list',
+    type: 'array',
     items: {
       type: 'string',
       required: true,

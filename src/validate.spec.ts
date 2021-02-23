@@ -14,6 +14,7 @@ import {
   validationCollectorObject,
   validationCollectorArray,
   validationCollectorString,
+  validationCollectorBoolean,
   validationCollectorNumber,
   validationCollectorDefault,
 } from './collectValidations'
@@ -32,6 +33,7 @@ const context = {
     validationCollectorArray(),
     validationCollectorString(),
     validationCollectorNumber(),
+    validationCollectorBoolean(),
     validationCollectorDefault(),
   ],
   interpreters: {
@@ -103,7 +105,7 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
         {
           /* empty object */
         },
-        { k1: 1, k2: '2' },
+        {},
       ],
       {
         string: MATCH_TYPE_ERROR,
@@ -158,31 +160,25 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
         const resultLabel = _validationResultLabel(result)
         const testLabel = `validate required ${type}: ${inputLabel} -> ${resultLabel}`
 
+        const schema =
+          type === 'object'
+            ? {
+                type,
+                required: true,
+                properties: {},
+              }
+            : {
+                type,
+                required: true,
+              }
+
         if (result === null) {
           // eslint-disable-next-line jest/valid-title
-          test(testLabel, () =>
-            expect(
-              validate(
-                {
-                  type,
-                  required: true,
-                },
-                input
-              )
-            ).toEqual(null)
-          )
+          test(testLabel, () => expect(validate(schema, input)).toEqual(null))
         } else {
           // eslint-disable-next-line jest/valid-title
           test(testLabel, () =>
-            expect(
-              validate(
-                {
-                  type,
-                  required: true,
-                },
-                input
-              )
-            ).toMatchObject(result)
+            expect(validate(schema, input)).toMatchObject(result)
           )
         }
       })

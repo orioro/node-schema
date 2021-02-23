@@ -149,11 +149,11 @@ export const OBJECT_UNKNOWN_PROPERTIES: Alternative = [
 
 export const parseValidationCases = (
   schema: ResolvedSchema,
-  resolvers: Alternative[]
+  caseAlternatives: Alternative[]
 ): ValidationCase[] => {
   const parsedCases = cascadeFilter(
     test,
-    resolvers,
+    caseAlternatives,
     schema
   ).map((prepareCase) => prepareCase(schema))
 
@@ -161,3 +161,23 @@ export const parseValidationCases = (
 
   return [...parsedCases, ...schemaCases]
 }
+
+export const DEFAULT_STRING_CASES = [ENUM, STRING_MIN_LENGTH, STRING_MAX_LENGTH]
+
+export const DEFAULT_NUMBER_CASES = [
+  ENUM,
+  NUMBER_MIN,
+  NUMBER_MAX,
+  NUMBER_MULTIPLE_OF,
+]
+
+export const DEFAULT_ARRAY_CASES = [
+  ARRAY_MIN_LENGTH,
+  ARRAY_MAX_LENGTH,
+  ARRAY_EXACT_LENGTH,
+  ARRAY_UNIQUE_ITEMS,
+]
+
+export const DEFAULT_OBJECT_CASES = [ENUM, OBJECT_UNKNOWN_PROPERTIES]
+
+export const DEFAULT_BOOLEAN_CASES = [ENUM]

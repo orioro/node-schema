@@ -7,8 +7,6 @@ import {
 } from './resolveSchema'
 import { groupBy } from 'lodash'
 
-// const dump = (v) => console.log(JSON.stringify(v, null, '  '))
-
 const cities = [
   { name: 'São Paulo', state: 'SP' },
   { name: 'Santos', state: 'SP' },

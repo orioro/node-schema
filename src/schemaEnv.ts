@@ -25,6 +25,7 @@ import {
   validationCollectorArray,
   validationCollectorString,
   validationCollectorNumber,
+  validationCollectorBoolean,
   validationCollectorDefault,
 } from './collectValidations'
 
@@ -77,6 +78,7 @@ export const schemaEnv = ({
       validationCollectorArray(),
       validationCollectorString(),
       validationCollectorNumber(),
+      validationCollectorBoolean(),
       validationCollectorDefault(),
     ],
     resolveSchema,

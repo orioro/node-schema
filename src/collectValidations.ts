@@ -7,17 +7,11 @@ import {
 } from '@orioro/tree-collect-nodes'
 import { parallelCases, allowValues, prohibitValues } from '@orioro/validate'
 import {
-  ENUM,
-  STRING_MIN_LENGTH,
-  STRING_MAX_LENGTH,
-  NUMBER_MIN,
-  NUMBER_MAX,
-  NUMBER_MULTIPLE_OF,
-  ARRAY_MIN_LENGTH,
-  ARRAY_MAX_LENGTH,
-  ARRAY_EXACT_LENGTH,
-  ARRAY_UNIQUE_ITEMS,
-  OBJECT_UNKNOWN_PROPERTIES,
+  DEFAULT_STRING_CASES,
+  DEFAULT_NUMBER_CASES,
+  DEFAULT_BOOLEAN_CASES,
+  DEFAULT_ARRAY_CASES,
+  DEFAULT_OBJECT_CASES,
   parseValidationCases,
 } from './parseValidationCases'
 
@@ -70,18 +64,20 @@ const _wrapValidationExp = (
   fnPipe(_type.bind(null, schema), _required.bind(null, schema))(validationExp)
 
 export const validationCollectorObject = (
-  objectTypes = ['object']
+  objectTypes = ['object'],
+  caseAlteratives = DEFAULT_OBJECT_CASES
 ): Alternative => [
-  (schema) =>
-    isPlainObject(schema) &&
-    isPlainObject(schema.properties) &&
-    objectTypes.includes(schema.type),
+  (schema) => isPlainObject(schema) && objectTypes.includes(schema.type),
   (schema, context) => {
+    if (!isPlainObject(schema.properties)) {
+      throw new Error('Invalid object schema: missing properties object')
+    }
+
     const objectCasesValidation = {
       path: context.path,
       validationExpression: _wrapValidationExp(
         schema,
-        _casesValidationExp(schema, [ENUM, OBJECT_UNKNOWN_PROPERTIES])
+        _casesValidationExp(schema, caseAlteratives)
       ),
     }
 
@@ -172,19 +168,14 @@ const _parseItemValidations = (schema, context) => {
 }
 
 export const validationCollectorArray = (
-  listTypes = ['array']
+  listTypes = ['array'],
+  caseAlteratives = DEFAULT_ARRAY_CASES
 ): Alternative => [
   (schema) => isPlainObject(schema) && listTypes.includes(schema.type),
   (schema, context) => {
     const itemValidations = _parseItemValidations(schema, context)
 
-    const cases = parseValidationCases(schema, [
-      ENUM,
-      ARRAY_MIN_LENGTH,
-      ARRAY_MAX_LENGTH,
-      ARRAY_EXACT_LENGTH,
-      ARRAY_UNIQUE_ITEMS,
-    ])
+    const cases = parseValidationCases(schema, caseAlteratives)
 
     return [
       {
@@ -215,31 +206,23 @@ const _validationResolver = (
 ]
 
 export const validationCollectorString = (
-  stringTypes = ['string']
-): Alternative =>
-  _validationResolver(stringTypes, [ENUM, STRING_MIN_LENGTH, STRING_MAX_LENGTH])
+  stringTypes = ['string'],
+  caseAlteratives = DEFAULT_STRING_CASES
+): Alternative => _validationResolver(stringTypes, caseAlteratives)
 
 export const validationCollectorNumber = (
-  numberTypes = ['number']
-): Alternative =>
-  _validationResolver(numberTypes, [
-    ENUM,
-    NUMBER_MIN,
-    NUMBER_MAX,
-    NUMBER_MULTIPLE_OF,
-  ])
+  numberTypes = ['number'],
+  caseAlteratives = DEFAULT_NUMBER_CASES
+): Alternative => _validationResolver(numberTypes, caseAlteratives)
+
+export const validationCollectorBoolean = (
+  booleanTypes = ['boolean'],
+  caseAlteratives = DEFAULT_BOOLEAN_CASES
+): Alternative => _validationResolver(booleanTypes, caseAlteratives)
 
 export const validationCollectorDefault = (): Alternative => [
-  (schema, context) => {
-    return [
-      {
-        path: context.path,
-        validationExpression: _wrapValidationExp(
-          schema,
-          _casesValidationExp(schema, [ENUM])
-        ),
-      },
-    ]
+  (schema) => {
+    throw new Error(`Validation collection failed. Unknown type ${schema.type}`)
   },
 ]
 

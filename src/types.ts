@@ -20,28 +20,6 @@ export type ResolvedSchema = {
 
 export { ValidationErrorSpec }
 
-export type MapSchema = ResolvedSchema & {
-  properties: { [key: string]: ResolvedSchema }
-}
-
-export type ListSchema = ResolvedSchema & {
-  items: ResolvedSchema
-  minLength?: number
-  maxLength?: number
-}
-
-export type StringSchema = ResolvedSchema & {
-  minLength?: number
-  maxLength?: number
-}
-
-export type NumberSchema = ResolvedSchema & {
-  min?: number
-  minExclusive?: number
-  max?: number
-  maxExclusive?: number
-}
-
 export type ValidationSpec = Node & {
   validationExpression: Expression
 }
