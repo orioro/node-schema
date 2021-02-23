@@ -1,6 +1,7 @@
 import { Expression } from '@orioro/expression'
 import { ValidationErrorSpec } from '@orioro/validate'
-import { Node } from '@orioro/tree-collect-nodes'
+import { Node, NodeCollector } from '@orioro/tree-collect-nodes'
+import { ResolverCandidate } from '@orioro/nested-map'
 
 export type UnresolvedSchema =
   | Expression
@@ -18,8 +19,6 @@ export type ResolvedSchema = {
   [key: string]: any
 }
 
-export { ValidationErrorSpec }
-
 export type ValidationSpec = Node & {
   validationExpression: Expression
 }
@@ -31,3 +30,9 @@ export type BuiltInType =
   | 'object'
   | 'array'
   | 'date'
+
+export {
+  ValidationErrorSpec,
+  ResolverCandidate,
+  NodeCollector
+}

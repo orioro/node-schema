@@ -1,7 +1,7 @@
 import { isPlainObject } from 'lodash'
-import { Alternative } from '@orioro/cascade'
 import {
   NodeCollector,
+  NodeCollectorContext,
   treeCollectNodes,
   pathJoin,
 } from '@orioro/tree-collect-nodes'
@@ -66,15 +66,15 @@ const _wrapValidationExp = (
 export const validationCollectorObject = (
   objectTypes = ['object'],
   caseAlteratives = DEFAULT_OBJECT_CASES
-): Alternative => [
+): NodeCollector => [
   (schema) => isPlainObject(schema) && objectTypes.includes(schema.type),
-  (schema, context) => {
+  (schema, context: ParseValidationsContext) :ValidationSpec[] => {
     if (!isPlainObject(schema.properties)) {
       throw new Error('Invalid object schema: missing properties object')
     }
 
-    const objectCasesValidation = {
-      path: context.path,
+    const objectCasesValidation:ValidationSpec = {
+      path: typeof context.path === 'string' ? context.path : '',
       validationExpression: _wrapValidationExp(
         schema,
         _casesValidationExp(schema, caseAlteratives)
@@ -170,7 +170,7 @@ const _parseItemValidations = (schema, context) => {
 export const validationCollectorArray = (
   listTypes = ['array'],
   caseAlteratives = DEFAULT_ARRAY_CASES
-): Alternative => [
+): NodeCollector => [
   (schema) => isPlainObject(schema) && listTypes.includes(schema.type),
   (schema, context) => {
     const itemValidations = _parseItemValidations(schema, context)
@@ -189,13 +189,13 @@ export const validationCollectorArray = (
 
 const _validationResolver = (
   types: string[],
-  caseResolvers: Alternative[]
-): Alternative => [
+  caseResolvers: NodeCollector[]
+): NodeCollector => [
   (schema) => isPlainObject(schema) && types.includes(schema.type),
   (schema, context) => {
     return [
       {
-        path: context.path,
+        path: typeof context.path === 'string' ? context.path : '',
         validationExpression: _wrapValidationExp(
           schema,
           _casesValidationExp(schema, caseResolvers)
@@ -208,25 +208,25 @@ const _validationResolver = (
 export const validationCollectorString = (
   stringTypes = ['string'],
   caseAlteratives = DEFAULT_STRING_CASES
-): Alternative => _validationResolver(stringTypes, caseAlteratives)
+): NodeCollector => _validationResolver(stringTypes, caseAlteratives)
 
 export const validationCollectorNumber = (
   numberTypes = ['number'],
   caseAlteratives = DEFAULT_NUMBER_CASES
-): Alternative => _validationResolver(numberTypes, caseAlteratives)
+): NodeCollector => _validationResolver(numberTypes, caseAlteratives)
 
 export const validationCollectorBoolean = (
   booleanTypes = ['boolean'],
   caseAlteratives = DEFAULT_BOOLEAN_CASES
-): Alternative => _validationResolver(booleanTypes, caseAlteratives)
+): NodeCollector => _validationResolver(booleanTypes, caseAlteratives)
 
-export const validationCollectorDefault = (): Alternative => [
+export const validationCollectorDefault = (): NodeCollector => [
   (schema) => {
     throw new Error(`Validation collection failed. Unknown type ${schema.type}`)
   },
 ]
 
-export type ParseValidationsContext = {
+export type ParseValidationsContext = NodeCollectorContext & {
   collectors: NodeCollector[]
   resolveSchema: (schema: UnresolvedSchema, value: any) => ResolvedSchema
 }
