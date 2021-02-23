@@ -68,12 +68,12 @@ export const validationCollectorObject = (
   caseAlteratives = DEFAULT_OBJECT_CASES
 ): NodeCollector => [
   (schema) => isPlainObject(schema) && objectTypes.includes(schema.type),
-  (schema, context: ParseValidationsContext) :ValidationSpec[] => {
+  (schema, context: ParseValidationsContext): ValidationSpec[] => {
     if (!isPlainObject(schema.properties)) {
       throw new Error('Invalid object schema: missing properties object')
     }
 
-    const objectCasesValidation:ValidationSpec = {
+    const objectCasesValidation: ValidationSpec = {
       path: typeof context.path === 'string' ? context.path : '',
       validationExpression: _wrapValidationExp(
         schema,

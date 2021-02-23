@@ -31,8 +31,4 @@ export type BuiltInType =
   | 'array'
   | 'date'
 
-export {
-  ValidationErrorSpec,
-  ResolverCandidate,
-  NodeCollector
-}
+export { ValidationErrorSpec, ResolverCandidate, NodeCollector }

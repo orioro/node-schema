@@ -31,16 +31,28 @@ import {
 
 import { ALL_EXPRESSIONS, ExpressionInterpreterList } from '@orioro/expression'
 
-import { ResolvedSchema, UnresolvedSchema, ValidationErrorSpec } from './types'
+import {
+  ResolvedSchema,
+  UnresolvedSchema,
+  ValidationErrorSpec,
+  ResolverCandidate,
+  NodeCollector,
+} from './types'
 
 type SchemaEnvOptions = {
   getType?: GetTypeInterface
   interpreters?: ExpressionInterpreterList
+  schemaResolvers?: ResolverCandidate[]
+  valueResolvers?: ResolverCandidate[]
+  validationCollectors?: NodeCollector[]
 }
 
 export const schemaEnv = ({
   getType,
   interpreters = ALL_EXPRESSIONS,
+  schemaResolvers,
+  valueResolvers,
+  validationCollectors,
 }: SchemaEnvOptions = {}): {
   resolveSchema: (schema: UnresolvedSchema, value: any) => ResolvedSchema
   resolveValue: (schema: ResolvedSchema, value: any) => any
@@ -53,34 +65,40 @@ export const schemaEnv = ({
   }
 
   const resolveSchema = resolveSchema_.bind(null, {
-    resolvers: [
-      schemaResolverExpression({ interpreters }),
-      schemaResolverObject(),
-      schemaResolverArray(),
-    ],
+    resolvers: Array.isArray(schemaResolvers)
+      ? schemaResolvers
+      : [
+          schemaResolverExpression({ interpreters }),
+          schemaResolverObject(),
+          schemaResolverArray(),
+        ],
   })
 
   const resolveValue = resolveValue_.bind(null, {
-    resolvers: [
-      objectValueResolver(),
-      arrayValueResolver(),
-      numberValueResolver(),
-      stringValueResolver(),
-      booleanValueResolver(),
-      defaultValueResolver(),
-    ],
+    resolvers: Array.isArray(valueResolvers)
+      ? valueResolvers
+      : [
+          objectValueResolver(),
+          arrayValueResolver(),
+          numberValueResolver(),
+          stringValueResolver(),
+          booleanValueResolver(),
+          defaultValueResolver(),
+        ],
   })
 
   const validateContext = {
     interpreters,
-    collectors: [
-      validationCollectorObject(),
-      validationCollectorArray(),
-      validationCollectorString(),
-      validationCollectorNumber(),
-      validationCollectorBoolean(),
-      validationCollectorDefault(),
-    ],
+    collectors: Array.isArray(validationCollectors)
+      ? validationCollectors
+      : [
+          validationCollectorObject(),
+          validationCollectorArray(),
+          validationCollectorString(),
+          validationCollectorNumber(),
+          validationCollectorBoolean(),
+          validationCollectorDefault(),
+        ],
     resolveSchema,
   }
 
