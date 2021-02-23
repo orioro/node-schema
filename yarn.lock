@@ -1503,6 +1503,15 @@
     lodash "^4.17.20"
     luxon "^1.25.0"
 
+"@orioro/expression@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@orioro/expression/-/expression-3.1.0.tgz#a29837aafc2412046c134b3e2c094592738654a1"
+  integrity sha512-N0a7O2Z8werzBhxAVDUOuUl5j4wV8t0poYImvtCeyS1GjKiYiO9M5mN8alTljhX4E6ZyQ7gYH170lQgWD9MJEw==
+  dependencies:
+    "@orioro/validate-type" "^1.1.0"
+    lodash "^4.17.20"
+    luxon "^1.25.0"
+
 "@orioro/nested-map@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@orioro/nested-map/-/nested-map-1.2.0.tgz#5932ac15d5a70b95aa551ea879fb1e119b2fc1e1"

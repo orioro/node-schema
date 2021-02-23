@@ -17,6 +17,7 @@ import {
   ARRAY_MAX_LENGTH,
   ARRAY_EXACT_LENGTH,
   ARRAY_UNIQUE_ITEMS,
+  OBJECT_UNKNOWN_PROPERTIES,
   parseValidationCases,
 } from './parseValidationCases'
 
@@ -69,18 +70,18 @@ const _wrapValidationExp = (
   fnPipe(_type.bind(null, schema), _required.bind(null, schema))(validationExp)
 
 export const validationCollectorObject = (
-  mapTypes = ['object']
+  objectTypes = ['object']
 ): Alternative => [
   (schema) =>
     isPlainObject(schema) &&
     isPlainObject(schema.properties) &&
-    mapTypes.includes(schema.type),
+    objectTypes.includes(schema.type),
   (schema, context) => {
-    const mapValidation = {
+    const objectCasesValidation = {
       path: context.path,
       validationExpression: _wrapValidationExp(
         schema,
-        _casesValidationExp(schema, [ENUM])
+        _casesValidationExp(schema, [ENUM, OBJECT_UNKNOWN_PROPERTIES])
       ),
     }
 
@@ -104,7 +105,7 @@ export const validationCollectorObject = (
           ),
         ]
       },
-      [mapValidation]
+      [objectCasesValidation]
     )
   },
 ]

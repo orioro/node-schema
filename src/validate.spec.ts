@@ -774,6 +774,18 @@ describe('object', () => {
     )
   })
 
+  test('properties: if given any unknown property, should fail validation', () => {
+    expect(
+      validate(objSchema1, {
+        strRequired: 'some string',
+        strMinLen5: '12345',
+        numMin5: 5,
+        arrayMinLen1: ['1'],
+        unknownProp: 'UNKNOWN_VALUE',
+      })
+    ).toMatchObject([{ code: 'OBJECT_UNKNOWN_PROPERTIES_ERROR', path: '' }])
+  })
+
   describe('properties: nested errors - object -> object -> value', () => {
     const schema = objSchema2
 
