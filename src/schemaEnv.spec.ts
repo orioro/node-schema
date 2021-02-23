@@ -36,7 +36,7 @@ describe('schemaEnv - basic', () => {
       '1234567890'
     )
 
-    expect(resolveValue(resolveSchema(schema, 9), 9)).toEqual(null)
+    expect(resolveValue(resolveSchema(schema, 9), 9)).toEqual(9)
 
     expect(resolveValue(resolveSchema(schema, []), [])).toEqual([])
 
@@ -47,7 +47,7 @@ describe('schemaEnv - basic', () => {
         '1234567890',
         8,
       ])
-    ).toEqual(['123', '12345', '1234567890', null])
+    ).toEqual(['123', '12345', '1234567890', 8])
   })
 
   test('validate(resolvedSchema, resolvedValue)', () => {
@@ -69,7 +69,7 @@ describe('schemaEnv - basic', () => {
     expect(validate(rs3, rv3)).toMatchObject([
       { code: 'STRING_MIN_LENGTH_ERROR', path: '0' },
       { code: 'STRING_MAX_LENGTH_ERROR', path: '2' },
-      // { code: 'TYPE_ERRROR', path: '3' },
+      { code: 'TYPE_ERROR', path: '3' },
     ])
   })
 })

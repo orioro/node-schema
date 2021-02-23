@@ -2,9 +2,9 @@ import {
   resolveValue as resolveValue_,
   objectValueResolver,
   arrayValueResolver,
-  numberValueResolver,
-  stringValueResolver,
-  booleanValueResolver,
+  // numberValueResolver,
+  // stringValueResolver,
+  // booleanValueResolver,
   defaultValueResolver,
 } from './resolveValue'
 
@@ -12,9 +12,9 @@ const resolveValue = resolveValue_.bind(null, {
   resolvers: [
     objectValueResolver(),
     arrayValueResolver(),
-    numberValueResolver(),
-    stringValueResolver(),
-    booleanValueResolver(),
+    // numberValueResolver(),
+    // stringValueResolver(),
+    // booleanValueResolver(),
     defaultValueResolver(),
   ],
 })
@@ -46,22 +46,22 @@ describe('type casting', () => {
     [
       9,
       {
-        string: null,
+        string: 9,
         number: 9,
-        boolean: null,
-        object: null,
-        array: null,
+        boolean: 9,
+        object: 9,
+        array: 9,
         // date: null,
       },
     ],
     [
       NaN,
       {
-        string: null,
-        number: null,
-        boolean: null,
-        object: null,
-        array: null,
+        string: NaN,
+        number: NaN,
+        boolean: NaN,
+        object: NaN,
+        array: NaN,
         // date: null,
       },
     ],
@@ -69,10 +69,10 @@ describe('type casting', () => {
       '9',
       {
         string: '9',
-        number: null,
-        boolean: null,
-        object: null,
-        array: null,
+        number: '9',
+        boolean: '9',
+        object: '9',
+        array: '9',
         // date: null,
       },
     ],
@@ -80,10 +80,10 @@ describe('type casting', () => {
       '9.9',
       {
         string: '9.9',
-        number: null,
-        boolean: null,
-        object: null,
-        array: null,
+        number: '9.9',
+        boolean: '9.9',
+        object: '9.9',
+        array: '9.9',
         // date: null,
       },
     ],
@@ -91,53 +91,59 @@ describe('type casting', () => {
       '',
       {
         string: '',
-        number: null,
-        boolean: null,
-        object: null,
-        array: null,
+        number: '',
+        boolean: '',
+        object: '',
+        array: '',
         // date: null,
       },
     ],
     [
       true,
       {
-        string: null,
-        number: null,
+        string: true,
+        number: true,
         boolean: true,
-        object: null,
-        array: null,
+        object: true,
+        array: true,
         // date: null,
       },
     ],
     [
       false,
       {
-        string: null,
-        number: null,
+        string: false,
+        number: false,
         boolean: false,
-        object: null,
-        array: null,
+        object: false,
+        array: false,
         // date: null,
       },
     ],
     [
+      // For objects, all schema types other than 'object'
+      // will simply return the original value
+      // These should generate errors on validation step
       { key1: 'value1' },
       {
-        string: null,
-        number: null,
-        boolean: null,
+        string: { key1: 'value1' },
+        number: { key1: 'value1' },
+        boolean: { key1: 'value1' },
         object: {},
-        array: null,
+        array: { key1: 'value1' },
         // date: null,
       },
     ],
     [
+      // For arrays, all schema types other than 'array'
+      // will simply return the original value.
+      // These should generate errors on validation step
       ['1', '2', '3'],
       {
-        string: null,
-        number: null,
-        boolean: null,
-        object: null,
+        string: ['1', '2', '3'],
+        number: ['1', '2', '3'],
+        boolean: ['1', '2', '3'],
+        object: ['1', '2', '3'],
         array: [null, null, null],
         // date: null,
       },
@@ -145,22 +151,22 @@ describe('type casting', () => {
     [
       true,
       {
-        string: null,
-        number: null,
+        string: true,
+        number: true,
         boolean: true,
-        object: null,
-        array: null,
+        object: true,
+        array: true,
         // date: null,
       },
     ],
     [
       false,
       {
-        string: null,
-        number: null,
+        string: false,
+        number: false,
         boolean: false,
-        object: null,
-        array: null,
+        object: false,
+        array: false,
         // date: null,
       },
     ],
@@ -199,7 +205,7 @@ describe('array', () => {
       ],
       [
         [1, undefined, '3'],
-        [null, null, '3'],
+        [1, null, '3'],
       ],
     ]
 
@@ -221,7 +227,7 @@ describe('array', () => {
       ],
       [
         ['1', '2', '3'],
-        ['1', null, null],
+        ['1', '2', '3'],
       ],
       [
         [undefined, undefined, undefined],
@@ -276,7 +282,7 @@ describe('array', () => {
         ],
         [
           ['1', '2', '3'],
-          ['1', null, null],
+          ['1', '2', '3'],
         ],
         [
           [undefined, undefined, undefined],

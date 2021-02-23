@@ -2,22 +2,24 @@ import { isPlainObject } from 'lodash'
 import { nestedMap, ResolverCandidate } from '@orioro/nested-map'
 import { ResolvedSchema } from './types'
 
+const _resolveUndefinedAndNull = (schema, context, resolve) => {
+  if (context.value === null) {
+    return null
+  } else if (context.value === undefined) {
+    return schema.default === undefined
+      ? null
+      : resolve(schema, {
+          ...context,
+          value: schema.default,
+        })
+  } else {
+    return resolve(schema, context)
+  }
+}
+
 const _valueResolver = (types, resolve): ResolverCandidate => [
   (schema) => isPlainObject(schema) && types.includes(schema.type),
-  (schema, context) => {
-    if (context.value === null) {
-      return null
-    } else if (context.value === undefined) {
-      return schema.default === undefined
-        ? null
-        : resolve(schema, {
-            ...context,
-            value: schema.default,
-          })
-    } else {
-      return resolve(schema, context)
-    }
-  },
+  (schema, context) => _resolveUndefinedAndNull(schema, context, resolve),
 ]
 
 /**
@@ -39,7 +41,7 @@ export const objectValueResolver = (
           }, {})
         : {} // no known properties properties
     } else {
-      return null
+      return value
     }
   })
 
@@ -60,60 +62,28 @@ export const arrayValueResolver = (arrayTypes = ['array']): ResolverCandidate =>
           )
         : _nItemsArray(value.length, null) // no items defined
     } else {
-      return null
+      return value
     }
   })
 
 /**
- * @function numberValueResolver
- */
-export const numberValueResolver = (): ResolverCandidate =>
-  _valueResolver(['number'], (schema, { value }) =>
-    typeof value === 'number' && !isNaN(value) ? value : null
-  )
-
-/**
- * @function stringValueResolver
- */
-export const stringValueResolver = (): ResolverCandidate =>
-  _valueResolver(['string'], (schema, { value }) =>
-    typeof value === 'string' ? value : null
-  )
-
-/**
- * @function booleanValueResolver
- */
-export const booleanValueResolver = (): ResolverCandidate =>
-  _valueResolver(['boolean'], (schema, { value }) =>
-    typeof value === 'boolean' ? value : null
-  )
-
-/**
  * @function defaultValueResolver
  */
-export const defaultValueResolver = (): ResolverCandidate => [
-  (schema) => {
-    throw new Error(`Unknown type ${schema && schema.type}`)
+export const defaultValueResolver = (
+  types = ['string', 'number', 'boolean']
+): ResolverCandidate => [
+  (schema, context) => {
+    if (!types.includes(schema.type)) {
+      throw new Error(`Unknown type ${schema && schema.type}`)
+    }
+
+    return _resolveUndefinedAndNull(
+      schema,
+      context,
+      (postUndefNullSchema, postUndefNullContext) => postUndefNullContext.value
+    )
   },
 ]
-
-// export const defaultValueResolver = (types): ResolverCandidate => [
-//   (schema, context) => {
-
-//     if (context.value === null) {
-//       return null
-//     } else if (context.value === undefined) {
-//       return schema.default === undefined
-//         ? null
-//         : resolve(schema, {
-//             ...context,
-//             value: schema.default,
-//           })
-//     } else {
-//       return resolve(schema, context)
-//     }
-//   }
-// ]
 
 export type ResolveValueContext = {
   resolvers: ResolverCandidate[]

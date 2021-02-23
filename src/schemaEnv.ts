@@ -10,9 +10,6 @@ import {
   resolveValue as resolveValue_,
   objectValueResolver,
   arrayValueResolver,
-  numberValueResolver,
-  stringValueResolver,
-  booleanValueResolver,
   defaultValueResolver,
 } from './resolveValue'
 
@@ -82,14 +79,7 @@ export const schemaEnv = ({
   const resolveValue = resolveValue_.bind(null, {
     resolvers: Array.isArray(valueResolvers)
       ? valueResolvers
-      : [
-          objectValueResolver(),
-          arrayValueResolver(),
-          numberValueResolver(),
-          stringValueResolver(),
-          booleanValueResolver(),
-          defaultValueResolver(),
-        ],
+      : [objectValueResolver(), arrayValueResolver(), defaultValueResolver()],
   })
 
   const validateContext = {
