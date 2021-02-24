@@ -137,9 +137,6 @@ For validate: if validate method "auto resolves" the received value, it would va
 - [`resolveSchema()`](#resolveschema)
 - [`objectValueResolver()`](#objectvalueresolver)
 - [`arrayValueResolver()`](#arrayvalueresolver)
-- [`numberValueResolver()`](#numbervalueresolver)
-- [`stringValueResolver()`](#stringvalueresolver)
-- [`booleanValueResolver()`](#booleanvalueresolver)
 - [`defaultValueResolver()`](#defaultvalueresolver)
 - [`schemaEnv()`](#schemaenv)
 - [`UnresolvedSchema`](#unresolvedschema)
@@ -259,18 +256,6 @@ For validate: if validate method "auto resolves" the received value, it would va
 
 
 ##### `arrayValueResolver()`
-
-
-
-##### `numberValueResolver()`
-
-
-
-##### `stringValueResolver()`
-
-
-
-##### `booleanValueResolver()`
 
 
 

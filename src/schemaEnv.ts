@@ -29,6 +29,9 @@ import {
 
 import { ALL_EXPRESSIONS, ExpressionInterpreterList } from '@orioro/expression'
 
+import { DATE_EXPRESSIONS } from '@orioro/expression-date'
+import { STRING_IS_EXPRESSIONS } from '@orioro/expression-string-is'
+
 import {
   ResolvedSchema,
   UnresolvedSchema,
@@ -45,12 +48,19 @@ type SchemaEnvOptions = {
   validationCollectors?: NodeCollector[]
 }
 
+export const DEFAULT_EXPRESSION_INTERPRETERS = {
+  ...ALL_EXPRESSIONS,
+  ...DATE_EXPRESSIONS,
+  ...STRING_IS_EXPRESSIONS,
+}
+
 /**
+ * @todo schemaEnv Add support for 'date' type
  * @function schemaEnv
  */
 export const schemaEnv = ({
   getType,
-  interpreters = ALL_EXPRESSIONS,
+  interpreters = DEFAULT_EXPRESSION_INTERPRETERS,
   schemaResolvers,
   valueResolvers,
   validationCollectors,
