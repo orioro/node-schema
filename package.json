@@ -1,7 +1,14 @@
 {
   "name": "@orioro/schema",
   "version": "0.0.0-semantic-release",
-  "description": "",
+  "description": "Define complex data schemas and validation steps",
+  "keywords": ["schema", "validation", "expression"],
+  "homepage": "https://github.com/orioro/node-schema",
+  "bugs": "https://github.com/orioro/node-schema/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orioro/node-schema.git"
+  },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "scripts": {
@@ -22,6 +29,9 @@
   },
   "author": "",
   "license": "ISC",
+  "files": [
+    "dist/**/*"
+  ],
   "devDependencies": {
     "@babel/core": "^7.12.13",
     "@babel/preset-env": "^7.12.13",
