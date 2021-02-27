@@ -7,6 +7,7 @@ import { ResolvedSchema } from './types'
 import { CORE_SCHEMA_TYPES } from './expressions'
 
 /**
+ * @todo parseValidationCases Split alternatives into separate files by type
  * @todo parseValidationCases Tests for custom validation errors defined in schema
  * @const ENUM
  */

@@ -1,3 +1,6 @@
-- expressions          | better integrate $schemaType expression with built-in $type (src/expressions.ts)
+- *                    | Rewrite tests using @orioro/jest-util (src/validate.ts)
+- expressions          | Write specific tests for $schemaType and $isSchemaType expressions (src/expressions.ts)
+- parseValidationCases | Split alternatives into separate files by type (src/parseValidationCases.ts)
 - parseValidationCases | Tests for custom validation errors defined in schema (src/parseValidationCases.ts)
 - schemaEnv            | Add support for 'date' type (src/schemaEnv.ts)
+- validate             | Support async validations (src/validate.ts)

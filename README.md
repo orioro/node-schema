@@ -8,6 +8,7 @@ yarn add @orioro/schema
 Define complex data schemas and validation steps. Supports:
 - Conditional validation
 - Customizable validation criteria
+- todo: Async validation expressions
 
 # Steps:
 

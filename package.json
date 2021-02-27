@@ -31,7 +31,7 @@
     "prettier": "prettier src",
     "ci-check": "yarn test && yarn tsc:validate && yarn lint"
   },
-  "author": "",
+  "author": "Simon Fan <simon@orioro.design>",
   "license": "ISC",
   "files": [
     "dist/**/*"
