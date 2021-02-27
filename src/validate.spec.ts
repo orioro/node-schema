@@ -3,7 +3,7 @@ import {
   validateThrow as validateThrow_,
   ValidationError,
 } from './validate'
-import { schemaTypeExpression } from './expressions'
+import { schemaTypeExpressions } from './expressions'
 import {
   resolveSchema,
   schemaResolverExpression,
@@ -16,11 +16,13 @@ import {
   validationCollectorArray,
   validationCollectorString,
   validationCollectorBoolean,
+  validationCollectorISODate,
   validationCollectorNumber,
   validationCollectorDefault,
 } from './collectValidations'
 
 import { ALL_EXPRESSIONS } from '@orioro/expression'
+import { DATE_EXPRESSIONS } from '@orioro/expression-date'
 
 import {
   _valueLabel,
@@ -35,11 +37,13 @@ const context = {
     validationCollectorString(),
     validationCollectorNumber(),
     validationCollectorBoolean(),
+    validationCollectorISODate(),
     validationCollectorDefault(),
   ],
   interpreters: {
     ...ALL_EXPRESSIONS,
-    $schemaType: schemaTypeExpression(),
+    ...DATE_EXPRESSIONS,
+    ...schemaTypeExpressions(),
   },
   resolveSchema: resolveSchema.bind(null, {
     resolvers: [
@@ -70,6 +74,7 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
         boolean: MATCH_REQUIRED_ERROR,
         object: MATCH_REQUIRED_ERROR,
         array: MATCH_REQUIRED_ERROR,
+        ISODate: MATCH_REQUIRED_ERROR,
       },
     ],
     [
@@ -80,6 +85,7 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
         boolean: MATCH_TYPE_ERROR,
         object: MATCH_TYPE_ERROR,
         array: MATCH_TYPE_ERROR,
+        ISODate: MATCH_TYPE_ERROR,
       },
     ],
     [
@@ -90,6 +96,7 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
         boolean: MATCH_TYPE_ERROR,
         object: MATCH_TYPE_ERROR,
         array: MATCH_TYPE_ERROR,
+        ISODate: MATCH_TYPE_ERROR,
       },
     ],
     [
@@ -100,6 +107,18 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
         boolean: null,
         object: MATCH_TYPE_ERROR,
         array: MATCH_TYPE_ERROR,
+        ISODate: MATCH_TYPE_ERROR,
+      },
+    ],
+    [
+      ['2021-02-25T18:00:00.000-03:00'],
+      {
+        string: null,
+        number: MATCH_TYPE_ERROR,
+        boolean: MATCH_TYPE_ERROR,
+        object: MATCH_TYPE_ERROR,
+        array: MATCH_TYPE_ERROR,
+        ISODate: null,
       },
     ],
     [
@@ -115,6 +134,7 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
         boolean: MATCH_TYPE_ERROR,
         object: null,
         array: MATCH_TYPE_ERROR,
+        ISODate: MATCH_TYPE_ERROR,
       },
     ],
     [
@@ -130,6 +150,7 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
         boolean: MATCH_TYPE_ERROR,
         object: MATCH_TYPE_ERROR,
         array: null,
+        ISODate: MATCH_TYPE_ERROR,
       },
     ],
     [
@@ -149,6 +170,7 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
         boolean: MATCH_TYPE_ERROR,
         object: MATCH_TYPE_ERROR,
         array: MATCH_TYPE_ERROR,
+        ISODate: MATCH_TYPE_ERROR,
       },
     ],
   ]
@@ -336,6 +358,64 @@ describe('number', () => {
     expect(validate(schema, 10)).toEqual(null)
     expect(validate(schema, 20)).toEqual(null)
     expect(validate(schema, 25)).toMatchObject([{ code: 'NUMBER_MAX_ERROR' }])
+  })
+})
+
+describe('ISODate', () => {
+  test('min', () => {
+    const schema = {
+      type: 'ISODate',
+      min: '2021-02-25T18:00:00.000-03:00',
+    }
+
+    expect(validate(schema, '2021-02-25T18:00:00.000-03:00')).toEqual(null)
+    expect(validate(schema, '2021-02-25T19:00:00.000-03:00')).toEqual(null)
+    expect(validate(schema, '2021-02-25T17:00:00.000-03:00')).toMatchObject([
+      { code: 'ISO_DATE_MIN_ERROR' },
+    ])
+  })
+
+  test('minExclusive', () => {
+    const schema = {
+      type: 'ISODate',
+      minExclusive: '2021-02-25T18:00:00.000-03:00',
+    }
+
+    expect(validate(schema, '2021-02-25T18:00:00.000-03:00')).toMatchObject([
+      { code: 'ISO_DATE_MIN_ERROR' },
+    ])
+    expect(validate(schema, '2021-02-25T19:00:00.000-03:00')).toEqual(null)
+    expect(validate(schema, '2021-02-25T17:00:00.000-03:00')).toMatchObject([
+      { code: 'ISO_DATE_MIN_ERROR' },
+    ])
+  })
+
+  test('max', () => {
+    const schema = {
+      type: 'ISODate',
+      max: '2021-02-25T18:00:00.000-03:00',
+    }
+
+    expect(validate(schema, '2021-02-25T18:00:00.000-03:00')).toEqual(null)
+    expect(validate(schema, '2021-02-25T19:00:00.000-03:00')).toMatchObject([
+      { code: 'ISO_DATE_MAX_ERROR' },
+    ])
+    expect(validate(schema, '2021-02-25T17:00:00.000-03:00')).toEqual(null)
+  })
+
+  test('maxExclusive', () => {
+    const schema = {
+      type: 'ISODate',
+      maxExclusive: '2021-02-25T18:00:00.000-03:00',
+    }
+
+    expect(validate(schema, '2021-02-25T18:00:00.000-03:00')).toMatchObject([
+      { code: 'ISO_DATE_MAX_ERROR' },
+    ])
+    expect(validate(schema, '2021-02-25T19:00:00.000-03:00')).toMatchObject([
+      { code: 'ISO_DATE_MAX_ERROR' },
+    ])
+    expect(validate(schema, '2021-02-25T17:00:00.000-03:00')).toEqual(null)
   })
 })
 

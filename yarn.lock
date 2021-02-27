@@ -1536,6 +1536,21 @@
     "@orioro/validate-type" "^1.4.0"
     lodash "^4.17.20"
 
+"@orioro/expression@^4.2.0":
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/@orioro/expression/-/expression-4.2.0.tgz#5fa801ca626684f77b348852a86ce129b077a09a"
+  integrity sha512-q6UhIIC0LyQrp7LP5wThjmyDH5o2ac2p72HQ5GuV/N3bjfSgJLUOyUAxkcub5tcJ13vKcrvEWnpWgzLtVrg6nQ==
+  dependencies:
+    "@orioro/typing" "^3.0.0"
+    lodash "^4.17.20"
+
+"@orioro/jest-util@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@orioro/jest-util/-/jest-util-1.0.0.tgz#e4e8e23e61336bd13e51f02f7f76f74e752bf9cf"
+  integrity sha512-8MAxtBSRrQN42XnFr9QHnZnYPahQNnVA645ICP0OXxUkrt/abGNsKe81mRsrO1hQ8wNXR8HsxbTSWuuM5miybQ==
+  dependencies:
+    is-plain-object "^5.0.0"
+
 "@orioro/nested-map@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@orioro/nested-map/-/nested-map-2.0.0.tgz#1948bfeeba5a3dba039837e6ae653692353998eb"
@@ -1569,6 +1584,14 @@
   dependencies:
     "@orioro/cascade" "^3.0.0-beta"
     lodash "^4.17.20"
+
+"@orioro/typing@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@orioro/typing/-/typing-3.0.0.tgz#b30218d9e5075040ebc6a013ef5b419d0e2a3667"
+  integrity sha512-NuiteC4tN9kbraxcFzvMLlWB+2pTS1tiIVvJZdV/8MrL8M5RhI7V0kDv77O9JicuiBiUsTvYKqUXAR1OxWTTFA==
+  dependencies:
+    "@orioro/cascade" "^3.0.0"
+    is-plain-object "^5.0.0"
 
 "@orioro/validate-type@^1.1.0":
   version "1.1.0"

@@ -17,7 +17,7 @@ import {
   validate as validate_,
   validateThrow as validateThrow_,
 } from './validate'
-import { schemaTypeExpression, GetTypeInterface } from './expressions'
+import { schemaTypeExpressions } from './expressions'
 import {
   validationCollectorObject,
   validationCollectorArray,
@@ -27,7 +27,12 @@ import {
   validationCollectorDefault,
 } from './collectValidations'
 
-import { ALL_EXPRESSIONS, ExpressionInterpreterList } from '@orioro/expression'
+import {
+  ALL_EXPRESSIONS,
+  ExpressionInterpreterList,
+  TypeMap,
+  TypeAlternatives,
+} from '@orioro/expression'
 
 import { DATE_EXPRESSIONS } from '@orioro/expression-date'
 import { STRING_IS_EXPRESSIONS } from '@orioro/expression-string-is'
@@ -41,7 +46,7 @@ import {
 } from './types'
 
 type SchemaEnvOptions = {
-  getType?: GetTypeInterface
+  types?: TypeMap | TypeAlternatives
   interpreters?: ExpressionInterpreterList
   schemaResolvers?: ResolverCandidate[]
   valueResolvers?: ResolverCandidate[]
@@ -59,7 +64,7 @@ export const DEFAULT_EXPRESSION_INTERPRETERS = {
  * @function schemaEnv
  */
 export const schemaEnv = ({
-  getType,
+  types,
   interpreters = DEFAULT_EXPRESSION_INTERPRETERS,
   schemaResolvers,
   valueResolvers,
@@ -72,7 +77,7 @@ export const schemaEnv = ({
 } => {
   interpreters = {
     ...interpreters,
-    $schemaType: schemaTypeExpression(getType),
+    ...schemaTypeExpressions(types),
   }
 
   const resolveSchema = resolveSchema_.bind(null, {

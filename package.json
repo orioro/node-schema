@@ -2,7 +2,11 @@
   "name": "@orioro/schema",
   "version": "0.0.0-semantic-release",
   "description": "Define complex data schemas and validation steps",
-  "keywords": ["schema", "validation", "expression"],
+  "keywords": [
+    "schema",
+    "validation",
+    "expression"
+  ],
   "homepage": "https://github.com/orioro/node-schema",
   "bugs": "https://github.com/orioro/node-schema/issues",
   "repository": {
@@ -36,6 +40,7 @@
     "@babel/core": "^7.12.13",
     "@babel/preset-env": "^7.12.13",
     "@babel/preset-typescript": "^7.12.13",
+    "@orioro/jest-util": "^1.0.0",
     "@orioro/readme": "^1.0.1",
     "@rollup/plugin-babel": "^5.2.3",
     "@rollup/plugin-commonjs": "^17.1.0",
@@ -58,15 +63,15 @@
   },
   "dependencies": {
     "@orioro/cascade": "^3.0.0",
-    "@orioro/expression": "^4.0.1",
+    "@orioro/expression": "^4.2.0",
     "@orioro/expression-date": "^1.0.1",
     "@orioro/expression-string-is": "^1.0.2",
     "@orioro/nested-map": "^2.0.0",
     "@orioro/tree-collect-nodes": "^2.0.0",
     "@orioro/validate": "^2.1.2",
-    "@orioro/validate-type": "^1.1.0",
     "deep-for-each": "^3.0.0",
-    "lodash": "^4.17.20"
+    "lodash": "^4.17.20",
+    "luxon": "^1.26.0"
   },
   "config": {
     "commitizen": {

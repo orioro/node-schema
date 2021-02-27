@@ -4,6 +4,8 @@ import { ValidationCase } from '@orioro/validate'
 import { getError } from './util'
 import { ResolvedSchema } from './types'
 
+import { CORE_SCHEMA_TYPES } from './expressions'
+
 /**
  * @todo parseValidationCases Tests for custom validation errors defined in schema
  * @const ENUM
@@ -181,6 +183,34 @@ export const OBJECT_UNKNOWN_PROPERTIES: Alternative = [
   ],
 ]
 
+export const ISO_DATE_MIN: Alternative = [
+  (schema: ResolvedSchema): boolean =>
+    CORE_SCHEMA_TYPES.ISODate(schema.min) ||
+    CORE_SCHEMA_TYPES.ISODate(schema.minExclusive),
+  (schema: ResolvedSchema): ValidationCase => [
+    typeof schema.minExclusive === 'string'
+      ? ['$dateGt', schema.minExclusive]
+      : ['$dateGte', schema.min],
+    getError(schema, 'min', {
+      code: 'ISO_DATE_MIN_ERROR',
+    }),
+  ],
+]
+
+export const ISO_DATE_MAX: Alternative = [
+  (schema: ResolvedSchema): boolean =>
+    CORE_SCHEMA_TYPES.ISODate(schema.max) ||
+    CORE_SCHEMA_TYPES.ISODate(schema.maxExclusive),
+  (schema: ResolvedSchema): ValidationCase => [
+    typeof schema.maxExclusive === 'string'
+      ? ['$dateLt', schema.maxExclusive]
+      : ['$dateLte', schema.max],
+    getError(schema, 'max', {
+      code: 'ISO_DATE_MAX_ERROR',
+    }),
+  ],
+]
+
 /**
  * @function parseValidationCases
  */
@@ -218,3 +248,5 @@ export const DEFAULT_ARRAY_CASES = [
 export const DEFAULT_OBJECT_CASES = [ENUM, OBJECT_UNKNOWN_PROPERTIES]
 
 export const DEFAULT_BOOLEAN_CASES = [ENUM]
+
+export const DEFAULT_ISO_DATE_CASES = [ISO_DATE_MIN, ISO_DATE_MAX]

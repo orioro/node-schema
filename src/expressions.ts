@@ -1,13 +1,42 @@
-import { ExpressionInterpreter, interpreter } from '@orioro/expression'
+import {
+  ExpressionInterpreter,
+  typeExpressions,
+  TypeMap,
+  TypeAlternatives,
+  CORE_TYPES,
+} from '@orioro/expression'
+import { pick } from 'lodash'
 
-import { getType as _getType } from '@orioro/validate-type'
+import { DateTime } from 'luxon'
 
-export type GetTypeInterface = (value: any) => string | void
+export const CORE_SCHEMA_TYPES: TypeMap = {
+  ISODate: (value) =>
+    typeof value === 'string' && DateTime.fromISO(value).isValid,
+  ...pick(CORE_TYPES, [
+    'string',
+    'number',
+    'object',
+    'array',
+    'boolean',
+    'undefined',
+    'null',
+  ]),
+}
 
 /**
- * @todo expressions better integrate $schemaType expression with built-in $type
+ * @todo expressions Write specific tests for $schemaType and $isSchemaType expressions
  * @function schemaTypeExpression
  */
-export const schemaTypeExpression = (
-  getType: GetTypeInterface = _getType
-): ExpressionInterpreter => interpreter((value: any) => getType(value), ['any'])
+export const schemaTypeExpressions = (
+  types: TypeMap | TypeAlternatives = CORE_SCHEMA_TYPES
+): {
+  $schemaType: ExpressionInterpreter
+  $isSchemaType: ExpressionInterpreter
+} => {
+  const [$schemaType, $isSchemaType] = typeExpressions(types)
+
+  return {
+    $schemaType,
+    $isSchemaType,
+  }
+}

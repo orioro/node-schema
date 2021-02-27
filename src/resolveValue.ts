@@ -70,7 +70,7 @@ export const arrayValueResolver = (arrayTypes = ['array']): ResolverCandidate =>
  * @function defaultValueResolver
  */
 export const defaultValueResolver = (
-  types = ['string', 'number', 'boolean']
+  types = ['string', 'number', 'boolean', 'date']
 ): ResolverCandidate => [
   (schema, context) => {
     if (!types.includes(schema.type)) {

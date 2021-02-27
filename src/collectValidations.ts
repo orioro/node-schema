@@ -10,6 +10,7 @@ import {
   DEFAULT_STRING_CASES,
   DEFAULT_NUMBER_CASES,
   DEFAULT_BOOLEAN_CASES,
+  DEFAULT_ISO_DATE_CASES,
   DEFAULT_ARRAY_CASES,
   DEFAULT_OBJECT_CASES,
   parseValidationCases,
@@ -24,13 +25,14 @@ const _type = (
   schema: ResolvedSchema,
   validationExp: Expression
 ): Expression => {
-  const criteria = ['$notEq', schema.type, ['$schemaType']]
+  // const criteria = ['$notEq', schema.type, ['$schemaType']]
+  const criteria = ['$isSchemaType', schema.type]
   const error = getError(schema, 'type', {
     code: 'TYPE_ERROR',
     message: `Must be type \`${schema.type}\``,
   })
 
-  return ['$if', criteria, error, validationExp]
+  return ['$if', criteria, validationExp, error]
 }
 
 const _casesValidationExp = (
@@ -68,7 +70,7 @@ const _wrapValidationExp = (
  */
 export const validationCollectorObject = (
   objectTypes = ['object'],
-  caseAlteratives = DEFAULT_OBJECT_CASES
+  caseAlternatives = DEFAULT_OBJECT_CASES
 ): NodeCollector => [
   (schema) => isPlainObject(schema) && objectTypes.includes(schema.type),
   (schema, context: ParseValidationsContext): ValidationSpec[] => {
@@ -80,7 +82,7 @@ export const validationCollectorObject = (
       path: typeof context.path === 'string' ? context.path : '',
       validationExpression: _wrapValidationExp(
         schema,
-        _casesValidationExp(schema, caseAlteratives)
+        _casesValidationExp(schema, caseAlternatives)
       ),
     }
 
@@ -175,13 +177,13 @@ const _parseItemValidations = (schema, context) => {
  */
 export const validationCollectorArray = (
   listTypes = ['array'],
-  caseAlteratives = DEFAULT_ARRAY_CASES
+  caseAlternatives = DEFAULT_ARRAY_CASES
 ): NodeCollector => [
   (schema) => isPlainObject(schema) && listTypes.includes(schema.type),
   (schema, context) => {
     const itemValidations = _parseItemValidations(schema, context)
 
-    const cases = parseValidationCases(schema, caseAlteratives)
+    const cases = parseValidationCases(schema, caseAlternatives)
 
     return [
       {
@@ -216,24 +218,29 @@ const _validationResolver = (
  */
 export const validationCollectorString = (
   stringTypes = ['string'],
-  caseAlteratives = DEFAULT_STRING_CASES
-): NodeCollector => _validationResolver(stringTypes, caseAlteratives)
+  caseAlternatives = DEFAULT_STRING_CASES
+): NodeCollector => _validationResolver(stringTypes, caseAlternatives)
 
 /**
  * @function validationCollectorNumber
  */
 export const validationCollectorNumber = (
   numberTypes = ['number'],
-  caseAlteratives = DEFAULT_NUMBER_CASES
-): NodeCollector => _validationResolver(numberTypes, caseAlteratives)
+  caseAlternatives = DEFAULT_NUMBER_CASES
+): NodeCollector => _validationResolver(numberTypes, caseAlternatives)
 
 /**
  * @function validationCollectorBoolean
  */
 export const validationCollectorBoolean = (
   booleanTypes = ['boolean'],
-  caseAlteratives = DEFAULT_BOOLEAN_CASES
-): NodeCollector => _validationResolver(booleanTypes, caseAlteratives)
+  caseAlternatives = DEFAULT_BOOLEAN_CASES
+): NodeCollector => _validationResolver(booleanTypes, caseAlternatives)
+
+export const validationCollectorISODate = (
+  ISODateTypes = ['ISODate'],
+  caseAlternatives = DEFAULT_ISO_DATE_CASES
+): NodeCollector => _validationResolver(ISODateTypes, caseAlternatives)
 
 /**
  * @function validationCollectorDefault

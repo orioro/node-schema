@@ -2,9 +2,6 @@ import {
   resolveValue as resolveValue_,
   objectValueResolver,
   arrayValueResolver,
-  // numberValueResolver,
-  // stringValueResolver,
-  // booleanValueResolver,
   defaultValueResolver,
 } from './resolveValue'
 
@@ -12,9 +9,6 @@ const resolveValue = resolveValue_.bind(null, {
   resolvers: [
     objectValueResolver(),
     arrayValueResolver(),
-    // numberValueResolver(),
-    // stringValueResolver(),
-    // booleanValueResolver(),
     defaultValueResolver(),
   ],
 })
@@ -29,7 +23,7 @@ describe('type casting', () => {
         boolean: null,
         object: null,
         array: null,
-        // date: null,
+        date: null,
       },
     ],
     [
@@ -40,7 +34,7 @@ describe('type casting', () => {
         boolean: null,
         object: null,
         array: null,
-        // date: null,
+        date: null,
       },
     ],
     [
@@ -51,7 +45,7 @@ describe('type casting', () => {
         boolean: 9,
         object: 9,
         array: 9,
-        // date: null,
+        date: 9,
       },
     ],
     [
@@ -62,7 +56,7 @@ describe('type casting', () => {
         boolean: NaN,
         object: NaN,
         array: NaN,
-        // date: null,
+        date: NaN,
       },
     ],
     [
@@ -73,7 +67,7 @@ describe('type casting', () => {
         boolean: '9',
         object: '9',
         array: '9',
-        // date: null,
+        date: '9',
       },
     ],
     [
@@ -84,7 +78,7 @@ describe('type casting', () => {
         boolean: '9.9',
         object: '9.9',
         array: '9.9',
-        // date: null,
+        date: '9.9',
       },
     ],
     [
@@ -95,7 +89,7 @@ describe('type casting', () => {
         boolean: '',
         object: '',
         array: '',
-        // date: null,
+        date: '',
       },
     ],
     [
@@ -106,7 +100,7 @@ describe('type casting', () => {
         boolean: true,
         object: true,
         array: true,
-        // date: null,
+        date: true,
       },
     ],
     [
@@ -117,7 +111,18 @@ describe('type casting', () => {
         boolean: false,
         object: false,
         array: false,
-        // date: null,
+        date: false,
+      },
+    ],
+    [
+      '2021-02-25T18:00:00.000-03:00',
+      {
+        string: '2021-02-25T18:00:00.000-03:00',
+        number: '2021-02-25T18:00:00.000-03:00',
+        boolean: '2021-02-25T18:00:00.000-03:00',
+        object: '2021-02-25T18:00:00.000-03:00',
+        array: '2021-02-25T18:00:00.000-03:00',
+        date: '2021-02-25T18:00:00.000-03:00',
       },
     ],
     [
@@ -131,7 +136,7 @@ describe('type casting', () => {
         boolean: { key1: 'value1' },
         object: {},
         array: { key1: 'value1' },
-        // date: null,
+        date: { key1: 'value1' },
       },
     ],
     [
@@ -145,7 +150,7 @@ describe('type casting', () => {
         boolean: ['1', '2', '3'],
         object: ['1', '2', '3'],
         array: [null, null, null],
-        // date: null,
+        date: ['1', '2', '3'],
       },
     ],
     [
@@ -156,7 +161,7 @@ describe('type casting', () => {
         boolean: true,
         object: true,
         array: true,
-        // date: null,
+        date: true,
       },
     ],
     [
@@ -167,7 +172,7 @@ describe('type casting', () => {
         boolean: false,
         object: false,
         array: false,
-        // date: null,
+        date: false,
       },
     ],
   ]
@@ -186,6 +191,17 @@ describe('type casting', () => {
       })
     })
   })
+})
+
+test('unknown types', () => {
+  expect(() => {
+    resolveValue(
+      {
+        type: 'unknown_type',
+      },
+      'some value'
+    )
+  }).toThrow(new Error('Unknown type unknown_type'))
 })
 
 describe('array', () => {

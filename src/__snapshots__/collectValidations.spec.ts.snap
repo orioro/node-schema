@@ -17,16 +17,9 @@ Array [
       Array [
         "$if",
         Array [
-          "$notEq",
+          "$isSchemaType",
           "array",
-          Array [
-            "$schemaType",
-          ],
         ],
-        Object {
-          "code": "TYPE_ERROR",
-          "message": "Must be type \`array\`",
-        },
         Array [
           "$pipe",
           Array [
@@ -62,6 +55,10 @@ Array [
             ],
           ],
         ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`array\`",
+        },
       ],
     ],
   },
@@ -83,16 +80,9 @@ Array [
       Array [
         "$if",
         Array [
-          "$notEq",
+          "$isSchemaType",
           "string",
-          Array [
-            "$schemaType",
-          ],
         ],
-        Object {
-          "code": "TYPE_ERROR",
-          "message": "Invalid type",
-        },
         Array [
           "$pipe",
           Array [
@@ -153,6 +143,10 @@ Array [
             ],
           ],
         ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Invalid type",
+        },
       ],
     ],
   },
@@ -174,16 +168,9 @@ Array [
       Array [
         "$if",
         Array [
-          "$notEq",
+          "$isSchemaType",
           "string",
-          Array [
-            "$schemaType",
-          ],
         ],
-        Object {
-          "code": "TYPE_ERROR",
-          "message": "Invalid type",
-        },
         Array [
           "$pipe",
           Array [
@@ -244,6 +231,10 @@ Array [
             ],
           ],
         ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Invalid type",
+        },
       ],
     ],
   },
@@ -265,16 +256,9 @@ Array [
       Array [
         "$if",
         Array [
-          "$notEq",
+          "$isSchemaType",
           "string",
-          Array [
-            "$schemaType",
-          ],
         ],
-        Object {
-          "code": "TYPE_ERROR",
-          "message": "Invalid type",
-        },
         Array [
           "$pipe",
           Array [
@@ -335,6 +319,10 @@ Array [
             ],
           ],
         ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Invalid type",
+        },
       ],
     ],
   },
@@ -356,16 +344,9 @@ Array [
       Array [
         "$if",
         Array [
-          "$notEq",
+          "$isSchemaType",
           "string",
-          Array [
-            "$schemaType",
-          ],
         ],
-        Object {
-          "code": "TYPE_ERROR",
-          "message": "Invalid type",
-        },
         Array [
           "$pipe",
           Array [
@@ -426,6 +407,10 @@ Array [
             ],
           ],
         ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Invalid type",
+        },
       ],
     ],
   },

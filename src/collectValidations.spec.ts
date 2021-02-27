@@ -5,7 +5,7 @@ import {
   validate,
 } from '@orioro/validate'
 
-import { schemaTypeExpression } from './expressions'
+import { schemaTypeExpressions, CORE_SCHEMA_TYPES } from './expressions'
 
 import { ALL_EXPRESSIONS } from '@orioro/expression'
 
@@ -46,7 +46,7 @@ const TYPE_ERROR = {
 
 const interpreters = {
   ...ALL_EXPRESSIONS,
-  $schemaType: schemaTypeExpression(),
+  ...schemaTypeExpressions(CORE_SCHEMA_TYPES),
 }
 
 describe('collectValidations(schema, context) - required / optional', () => {
@@ -79,7 +79,7 @@ describe('collectValidations(schema, context) - required / optional', () => {
         validationExpression: prohibitValues(
           [null, undefined],
           REQUIRED_ERROR,
-          ['$if', ['$notEq', 'string', ['$schemaType']], TYPE_ERROR, null]
+          ['$if', ['$isSchemaType', 'string'], null, TYPE_ERROR]
         ),
       },
     ])
@@ -124,12 +124,7 @@ describe('collectValidations(schema, context) - required / optional', () => {
         path: '',
         validationExpression: allowValues(
           [null, undefined],
-          [
-            '$if',
-            ['$notEq', 'string', ['$schemaType']],
-            { code: 'TYPE_ERROR' },
-            null,
-          ]
+          ['$if', ['$isSchemaType', 'string'], null, { code: 'TYPE_ERROR' }]
         ),
       },
     ])
@@ -188,12 +183,12 @@ test('string validations', () => {
       path: '',
       validationExpression: prohibitValues([null, undefined], REQUIRED_ERROR, [
         '$if',
-        ['$notEq', 'string', ['$schemaType']],
-        TYPE_ERROR,
+        ['$isSchemaType', 'string'],
         parallelCases([
           [['$gte', 5, ['$stringLength']], MIN_LENGTH_ERROR],
           [['$lte', 10, ['$stringLength']], MAX_LENGTH_ERROR],
         ]),
+        TYPE_ERROR,
       ]),
     },
   ])
