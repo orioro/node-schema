@@ -1,6 +1,6 @@
 import {
-  validate as validate_,
-  validateThrow as validateThrow_,
+  validateSync as validateSync_,
+  validateSyncThrow as validateSyncThrow_,
   ValidationError,
 } from './validate'
 import { schemaTypeExpressions } from './expressions'
@@ -21,7 +21,7 @@ import {
   validationCollectorDefault,
 } from './collectValidations'
 
-import { ALL_EXPRESSIONS } from '@orioro/expression'
+import { ALL_EXPRESSIONS, interpreterList } from '@orioro/expression'
 import { DATE_EXPRESSIONS } from '@orioro/expression-date'
 
 import {
@@ -40,11 +40,11 @@ const context = {
     validationCollectorISODate(),
     validationCollectorDefault(),
   ],
-  interpreters: {
+  interpreters: interpreterList({
     ...ALL_EXPRESSIONS,
     ...DATE_EXPRESSIONS,
     ...schemaTypeExpressions(),
-  },
+  }),
   resolveSchema: resolveSchema.bind(null, {
     resolvers: [
       schemaResolverExpression(),
@@ -55,11 +55,11 @@ const context = {
   }),
 }
 
-const validate = validate_.bind(null, context)
-const validateThrow = validateThrow_.bind(null, context)
+const validateSync = validateSync_.bind(null, context)
+const validateSyncThrow = validateSyncThrow_.bind(null, context)
 
 const _validationTestLabel = (inputLabel, resultLabel) =>
-  `validate(schema, ${inputLabel}) -> ${resultLabel}`
+  `validateSync(schema, ${inputLabel}) -> ${resultLabel}`
 
 describe('REQUIRED_ERROR and TYPE_ERROR', () => {
   const MATCH_REQUIRED_ERROR = [{ code: 'REQUIRED_ERROR' }]
@@ -156,7 +156,7 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
     [
       [
         NaN,
-        9n,
+        BigInt('9'),
         new Set(),
         new WeakSet(),
         new Map(),
@@ -182,7 +182,7 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
 
         const inputLabel = _valueLabel(input)
         const resultLabel = _validationResultLabel(result)
-        const testLabel = `validate required ${type}: ${inputLabel} -> ${resultLabel}`
+        const testLabel = `validateSync required ${type}: ${inputLabel} -> ${resultLabel}`
 
         const schema =
           type === 'object'
@@ -198,11 +198,13 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
 
         if (result === null) {
           // eslint-disable-next-line jest/valid-title
-          test(testLabel, () => expect(validate(schema, input)).toEqual(null))
+          test(testLabel, () =>
+            expect(validateSync(schema, input)).toEqual(null)
+          )
         } else {
           // eslint-disable-next-line jest/valid-title
           test(testLabel, () =>
-            expect(validate(schema, input)).toMatchObject(result)
+            expect(validateSync(schema, input)).toMatchObject(result)
           )
         }
       })
@@ -216,30 +218,32 @@ describe('enum -> ENUM_ERROR', () => {
       type: 'string',
       enum: [],
     }
-    expect(validate(schema, 'a')).toMatchObject([{ code: 'ENUM_ERROR' }])
-    expect(validate(schema, 'b')).toMatchObject([{ code: 'ENUM_ERROR' }])
+    expect(validateSync(schema, 'a')).toMatchObject([{ code: 'ENUM_ERROR' }])
+    expect(validateSync(schema, 'b')).toMatchObject([{ code: 'ENUM_ERROR' }])
   })
   test('string options', () => {
     const schema = {
       type: 'string',
       enum: ['opt_a', 'opt_b', 'opt_c'],
     }
-    expect(validate(schema, 'opt_a')).toEqual(null)
-    expect(validate(schema, 'opt_b')).toEqual(null)
-    expect(validate(schema, 'opt_c')).toEqual(null)
-    expect(validate(schema, 'opt_d')).toMatchObject([{ code: 'ENUM_ERROR' }])
-    expect(validate(schema, 1)).toMatchObject([{ code: 'TYPE_ERROR' }])
+    expect(validateSync(schema, 'opt_a')).toEqual(null)
+    expect(validateSync(schema, 'opt_b')).toEqual(null)
+    expect(validateSync(schema, 'opt_c')).toEqual(null)
+    expect(validateSync(schema, 'opt_d')).toMatchObject([
+      { code: 'ENUM_ERROR' },
+    ])
+    expect(validateSync(schema, 1)).toMatchObject([{ code: 'TYPE_ERROR' }])
   })
   test('number options', () => {
     const schema = {
       type: 'number',
       enum: [1, 2, 3],
     }
-    expect(validate(schema, 1)).toEqual(null)
-    expect(validate(schema, 2)).toEqual(null)
-    expect(validate(schema, 3)).toEqual(null)
-    expect(validate(schema, 4)).toMatchObject([{ code: 'ENUM_ERROR' }])
-    expect(validate(schema, '1')).toMatchObject([{ code: 'TYPE_ERROR' }])
+    expect(validateSync(schema, 1)).toEqual(null)
+    expect(validateSync(schema, 2)).toEqual(null)
+    expect(validateSync(schema, 3)).toEqual(null)
+    expect(validateSync(schema, 4)).toMatchObject([{ code: 'ENUM_ERROR' }])
+    expect(validateSync(schema, '1')).toMatchObject([{ code: 'TYPE_ERROR' }])
   })
 })
 
@@ -249,11 +253,11 @@ describe('string', () => {
       type: 'string',
       minLength: 5,
     }
-    expect(validate(schema, '123')).toMatchObject([
+    expect(validateSync(schema, '123')).toMatchObject([
       { code: 'STRING_MIN_LENGTH_ERROR' },
     ])
-    expect(validate(schema, '12345')).toEqual(null)
-    expect(validate(schema, '123456')).toEqual(null)
+    expect(validateSync(schema, '12345')).toEqual(null)
+    expect(validateSync(schema, '123456')).toEqual(null)
   })
 
   test('maxLength -> STRING_MAX_LENGTH_ERROR', () => {
@@ -261,9 +265,9 @@ describe('string', () => {
       type: 'string',
       maxLength: 5,
     }
-    expect(validate(schema, '123')).toEqual(null)
-    expect(validate(schema, '12345')).toEqual(null)
-    expect(validate(schema, '123456')).toMatchObject([
+    expect(validateSync(schema, '123')).toEqual(null)
+    expect(validateSync(schema, '12345')).toEqual(null)
+    expect(validateSync(schema, '123456')).toMatchObject([
       { code: 'STRING_MAX_LENGTH_ERROR' },
     ])
   })
@@ -274,13 +278,13 @@ describe('string', () => {
       minLength: 5,
       maxLength: 10,
     }
-    expect(validate(schema, '123')).toMatchObject([
+    expect(validateSync(schema, '123')).toMatchObject([
       { code: 'STRING_MIN_LENGTH_ERROR' },
     ])
-    expect(validate(schema, '12345')).toEqual(null)
-    expect(validate(schema, '1234567')).toEqual(null)
-    expect(validate(schema, '1234567890')).toEqual(null)
-    expect(validate(schema, '12345678901')).toMatchObject([
+    expect(validateSync(schema, '12345')).toEqual(null)
+    expect(validateSync(schema, '1234567')).toEqual(null)
+    expect(validateSync(schema, '1234567890')).toEqual(null)
+    expect(validateSync(schema, '12345678901')).toMatchObject([
       { code: 'STRING_MAX_LENGTH_ERROR' },
     ])
   })
@@ -292,18 +296,24 @@ describe('number', () => {
       type: 'number',
       min: 5,
     }
-    expect(validate(schema, 4)).toMatchObject([{ code: 'NUMBER_MIN_ERROR' }])
-    expect(validate(schema, 5)).toEqual(null)
-    expect(validate(schema, 6)).toEqual(null)
+    expect(validateSync(schema, 4)).toMatchObject([
+      { code: 'NUMBER_MIN_ERROR' },
+    ])
+    expect(validateSync(schema, 5)).toEqual(null)
+    expect(validateSync(schema, 6)).toEqual(null)
   })
   test('minExclusive -> NUMBER_MIN_ERROR', () => {
     const schema = {
       type: 'number',
       minExclusive: 5,
     }
-    expect(validate(schema, 4)).toMatchObject([{ code: 'NUMBER_MIN_ERROR' }])
-    expect(validate(schema, 5)).toMatchObject([{ code: 'NUMBER_MIN_ERROR' }])
-    expect(validate(schema, 6)).toEqual(null)
+    expect(validateSync(schema, 4)).toMatchObject([
+      { code: 'NUMBER_MIN_ERROR' },
+    ])
+    expect(validateSync(schema, 5)).toMatchObject([
+      { code: 'NUMBER_MIN_ERROR' },
+    ])
+    expect(validateSync(schema, 6)).toEqual(null)
   })
 
   test('max -> NUMBER_MAX_ERROR', () => {
@@ -311,9 +321,11 @@ describe('number', () => {
       type: 'number',
       max: 5,
     }
-    expect(validate(schema, 4)).toEqual(null)
-    expect(validate(schema, 5)).toEqual(null)
-    expect(validate(schema, 6)).toMatchObject([{ code: 'NUMBER_MAX_ERROR' }])
+    expect(validateSync(schema, 4)).toEqual(null)
+    expect(validateSync(schema, 5)).toEqual(null)
+    expect(validateSync(schema, 6)).toMatchObject([
+      { code: 'NUMBER_MAX_ERROR' },
+    ])
   })
 
   test('maxExclusive -> NUMBER_MAX_ERROR', () => {
@@ -321,9 +333,13 @@ describe('number', () => {
       type: 'number',
       maxExclusive: 5,
     }
-    expect(validate(schema, 4)).toEqual(null)
-    expect(validate(schema, 5)).toMatchObject([{ code: 'NUMBER_MAX_ERROR' }])
-    expect(validate(schema, 6)).toMatchObject([{ code: 'NUMBER_MAX_ERROR' }])
+    expect(validateSync(schema, 4)).toEqual(null)
+    expect(validateSync(schema, 5)).toMatchObject([
+      { code: 'NUMBER_MAX_ERROR' },
+    ])
+    expect(validateSync(schema, 6)).toMatchObject([
+      { code: 'NUMBER_MAX_ERROR' },
+    ])
   })
 
   test('multipleOf -> NUMBER_MULTIPLE_OF_ERROR', () => {
@@ -331,10 +347,10 @@ describe('number', () => {
       type: 'number',
       multipleOf: 5,
     }
-    expect(validate(schema, 0)).toEqual(null)
-    expect(validate(schema, 5)).toEqual(null)
-    expect(validate(schema, 10)).toEqual(null)
-    expect(validate(schema, 3)).toMatchObject([
+    expect(validateSync(schema, 0)).toEqual(null)
+    expect(validateSync(schema, 5)).toEqual(null)
+    expect(validateSync(schema, 10)).toEqual(null)
+    expect(validateSync(schema, 3)).toMatchObject([
       { code: 'NUMBER_MULTIPLE_OF_ERROR' },
     ])
   })
@@ -347,17 +363,21 @@ describe('number', () => {
       multipleOf: 5,
     }
 
-    expect(validate(schema, 4)).toMatchObject([
+    expect(validateSync(schema, 4)).toMatchObject([
       { code: 'NUMBER_MIN_ERROR' },
       { code: 'NUMBER_MULTIPLE_OF_ERROR' },
     ])
-    expect(validate(schema, 5)).toMatchObject([{ code: 'NUMBER_MIN_ERROR' }])
-    expect(validate(schema, 6)).toMatchObject([
+    expect(validateSync(schema, 5)).toMatchObject([
+      { code: 'NUMBER_MIN_ERROR' },
+    ])
+    expect(validateSync(schema, 6)).toMatchObject([
       { code: 'NUMBER_MULTIPLE_OF_ERROR' },
     ])
-    expect(validate(schema, 10)).toEqual(null)
-    expect(validate(schema, 20)).toEqual(null)
-    expect(validate(schema, 25)).toMatchObject([{ code: 'NUMBER_MAX_ERROR' }])
+    expect(validateSync(schema, 10)).toEqual(null)
+    expect(validateSync(schema, 20)).toEqual(null)
+    expect(validateSync(schema, 25)).toMatchObject([
+      { code: 'NUMBER_MAX_ERROR' },
+    ])
   })
 })
 
@@ -368,11 +388,11 @@ describe('ISODate', () => {
       min: '2021-02-25T18:00:00.000-03:00',
     }
 
-    expect(validate(schema, '2021-02-25T18:00:00.000-03:00')).toEqual(null)
-    expect(validate(schema, '2021-02-25T19:00:00.000-03:00')).toEqual(null)
-    expect(validate(schema, '2021-02-25T17:00:00.000-03:00')).toMatchObject([
-      { code: 'ISO_DATE_MIN_ERROR' },
-    ])
+    expect(validateSync(schema, '2021-02-25T18:00:00.000-03:00')).toEqual(null)
+    expect(validateSync(schema, '2021-02-25T19:00:00.000-03:00')).toEqual(null)
+    expect(
+      validateSync(schema, '2021-02-25T17:00:00.000-03:00')
+    ).toMatchObject([{ code: 'ISO_DATE_MIN_ERROR' }])
   })
 
   test('minExclusive', () => {
@@ -381,13 +401,13 @@ describe('ISODate', () => {
       minExclusive: '2021-02-25T18:00:00.000-03:00',
     }
 
-    expect(validate(schema, '2021-02-25T18:00:00.000-03:00')).toMatchObject([
-      { code: 'ISO_DATE_MIN_ERROR' },
-    ])
-    expect(validate(schema, '2021-02-25T19:00:00.000-03:00')).toEqual(null)
-    expect(validate(schema, '2021-02-25T17:00:00.000-03:00')).toMatchObject([
-      { code: 'ISO_DATE_MIN_ERROR' },
-    ])
+    expect(
+      validateSync(schema, '2021-02-25T18:00:00.000-03:00')
+    ).toMatchObject([{ code: 'ISO_DATE_MIN_ERROR' }])
+    expect(validateSync(schema, '2021-02-25T19:00:00.000-03:00')).toEqual(null)
+    expect(
+      validateSync(schema, '2021-02-25T17:00:00.000-03:00')
+    ).toMatchObject([{ code: 'ISO_DATE_MIN_ERROR' }])
   })
 
   test('max', () => {
@@ -396,11 +416,11 @@ describe('ISODate', () => {
       max: '2021-02-25T18:00:00.000-03:00',
     }
 
-    expect(validate(schema, '2021-02-25T18:00:00.000-03:00')).toEqual(null)
-    expect(validate(schema, '2021-02-25T19:00:00.000-03:00')).toMatchObject([
-      { code: 'ISO_DATE_MAX_ERROR' },
-    ])
-    expect(validate(schema, '2021-02-25T17:00:00.000-03:00')).toEqual(null)
+    expect(validateSync(schema, '2021-02-25T18:00:00.000-03:00')).toEqual(null)
+    expect(
+      validateSync(schema, '2021-02-25T19:00:00.000-03:00')
+    ).toMatchObject([{ code: 'ISO_DATE_MAX_ERROR' }])
+    expect(validateSync(schema, '2021-02-25T17:00:00.000-03:00')).toEqual(null)
   })
 
   test('maxExclusive', () => {
@@ -409,13 +429,13 @@ describe('ISODate', () => {
       maxExclusive: '2021-02-25T18:00:00.000-03:00',
     }
 
-    expect(validate(schema, '2021-02-25T18:00:00.000-03:00')).toMatchObject([
-      { code: 'ISO_DATE_MAX_ERROR' },
-    ])
-    expect(validate(schema, '2021-02-25T19:00:00.000-03:00')).toMatchObject([
-      { code: 'ISO_DATE_MAX_ERROR' },
-    ])
-    expect(validate(schema, '2021-02-25T17:00:00.000-03:00')).toEqual(null)
+    expect(
+      validateSync(schema, '2021-02-25T18:00:00.000-03:00')
+    ).toMatchObject([{ code: 'ISO_DATE_MAX_ERROR' }])
+    expect(
+      validateSync(schema, '2021-02-25T19:00:00.000-03:00')
+    ).toMatchObject([{ code: 'ISO_DATE_MAX_ERROR' }])
+    expect(validateSync(schema, '2021-02-25T17:00:00.000-03:00')).toEqual(null)
   })
 })
 
@@ -426,14 +446,14 @@ describe('array', () => {
       minLength: 3,
     }
 
-    expect(validate(schema, [])).toMatchObject([
+    expect(validateSync(schema, [])).toMatchObject([
       { code: 'ARRAY_MIN_LENGTH_ERROR' },
     ])
-    expect(validate(schema, [0])).toMatchObject([
+    expect(validateSync(schema, [0])).toMatchObject([
       { code: 'ARRAY_MIN_LENGTH_ERROR' },
     ])
-    expect(validate(schema, [0, 1, 2])).toEqual(null)
-    expect(validate(schema, [0, 1, 2, 3, 4, 5])).toEqual(null)
+    expect(validateSync(schema, [0, 1, 2])).toEqual(null)
+    expect(validateSync(schema, [0, 1, 2, 3, 4, 5])).toEqual(null)
   })
 
   test('maxLength -> ARRAY_MAX_LENGTH_ERROR', () => {
@@ -442,10 +462,10 @@ describe('array', () => {
       maxLength: 3,
     }
 
-    expect(validate(schema, [])).toEqual(null)
-    expect(validate(schema, [0])).toEqual(null)
-    expect(validate(schema, [0, 1, 2])).toEqual(null)
-    expect(validate(schema, [0, 1, 2, 3, 4, 5])).toMatchObject([
+    expect(validateSync(schema, [])).toEqual(null)
+    expect(validateSync(schema, [0])).toEqual(null)
+    expect(validateSync(schema, [0, 1, 2])).toEqual(null)
+    expect(validateSync(schema, [0, 1, 2, 3, 4, 5])).toMatchObject([
       { code: 'ARRAY_MAX_LENGTH_ERROR' },
     ])
   })
@@ -456,24 +476,24 @@ describe('array', () => {
       uniqueItems: true,
     }
 
-    expect(validate(schema, [])).toEqual(null)
-    expect(validate(schema, [0])).toEqual(null)
-    expect(validate(schema, [0, 1, 2])).toEqual(null)
-    expect(validate(schema, [0, 1, 2, 0])).toMatchObject([
+    expect(validateSync(schema, [])).toEqual(null)
+    expect(validateSync(schema, [0])).toEqual(null)
+    expect(validateSync(schema, [0, 1, 2])).toEqual(null)
+    expect(validateSync(schema, [0, 1, 2, 0])).toMatchObject([
       { code: 'ARRAY_UNIQUE_ITEMS_ERROR' },
     ])
-    expect(validate(schema, [{}, {}])).toMatchObject([
+    expect(validateSync(schema, [{}, {}])).toMatchObject([
       { code: 'ARRAY_UNIQUE_ITEMS_ERROR' },
     ])
     expect(
-      validate(schema, [
+      validateSync(schema, [
         { key1: 'value1', key2: 'value2' },
         { key1: 'value1', key2: 'value2' },
       ])
     ).toMatchObject([{ code: 'ARRAY_UNIQUE_ITEMS_ERROR' }])
 
     expect(
-      validate(schema, [
+      validateSync(schema, [
         { key1: 'value1', key2: 'value2' },
         { key1: 'ANOTHER_VALUE', key2: 'value2' },
       ])
@@ -512,7 +532,7 @@ describe('array', () => {
 
     _generateTests(
       expectations,
-      (input) => validate(schema, input),
+      (input) => validateSync(schema, input),
       _validationTestLabel
     )
   })
@@ -557,7 +577,7 @@ describe('array', () => {
 
     _generateTests(
       expectations,
-      (input) => validate(schema, input),
+      (input) => validateSync(schema, input),
       _validationTestLabel
     )
   })
@@ -622,7 +642,7 @@ describe('array', () => {
 
     _generateTests(
       expectations,
-      (input) => validate(schema, input),
+      (input) => validateSync(schema, input),
       _validationTestLabel
     )
   })
@@ -686,7 +706,7 @@ describe('array', () => {
 
     _generateTests(
       expectations,
-      (input) => validate(schema, input),
+      (input) => validateSync(schema, input),
       _validationTestLabel
     )
   })
@@ -766,7 +786,7 @@ describe('array', () => {
 
     _generateTests(
       expectations,
-      (input) => validate(schema, input),
+      (input) => validateSync(schema, input),
       _validationTestLabel
     )
   })
@@ -850,14 +870,14 @@ describe('object', () => {
 
     _generateTests(
       expectations,
-      (input) => validate(schema, input),
+      (input) => validateSync(schema, input),
       _validationTestLabel
     )
   })
 
   test('properties: if given any unknown property, should fail validation', () => {
     expect(
-      validate(objSchema1, {
+      validateSync(objSchema1, {
         strRequired: 'some string',
         strMinLen5: '12345',
         numMin5: 5,
@@ -882,7 +902,7 @@ describe('object', () => {
 
     _generateTests(
       expectations,
-      (input) => validate(schema, input),
+      (input) => validateSync(schema, input),
       _validationTestLabel
     )
   })
@@ -937,7 +957,7 @@ describe('object', () => {
 
     _generateTests(
       expectations,
-      (input) => validate(schema, input),
+      (input) => validateSync(schema, input),
       _validationTestLabel
     )
   })
@@ -994,7 +1014,7 @@ describe('object', () => {
 
     _generateTests(
       expectations,
-      (input) => validate(schema, input),
+      (input) => validateSync(schema, input),
       _validationTestLabel
     )
   })
@@ -1070,18 +1090,18 @@ describe('object', () => {
 
     _generateTests(
       expectations,
-      (input) => validate(schema, input),
+      (input) => validateSync(schema, input),
       _validationTestLabel
     )
   })
 })
 
-test('validateThrow', () => {
+test('validateSyncThrow', () => {
   const schema = {
     type: 'string',
     minLength: 5,
   }
 
-  expect(validateThrow(schema, '12345')).toEqual(undefined)
-  expect(() => validateThrow(schema, '1234')).toThrow(ValidationError)
+  expect(validateSyncThrow(schema, '12345')).toEqual(undefined)
+  expect(() => validateSyncThrow(schema, '1234')).toThrow(ValidationError)
 })

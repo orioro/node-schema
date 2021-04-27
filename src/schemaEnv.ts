@@ -14,8 +14,8 @@ import {
 } from './resolveValue'
 
 import {
-  validate as validate_,
-  validateThrow as validateThrow_,
+  validateSync as validateSync_,
+  validateSyncThrow as validateSyncThrow_,
 } from './validate'
 import { schemaTypeExpressions } from './expressions'
 import {
@@ -28,8 +28,9 @@ import {
 } from './collectValidations'
 
 import {
+  interpreterList,
   ALL_EXPRESSIONS,
-  ExpressionInterpreterList,
+  InterpreterList,
   TypeMap,
   TypeAlternatives,
 } from '@orioro/expression'
@@ -47,7 +48,7 @@ import {
 
 type SchemaEnvOptions = {
   types?: TypeMap | TypeAlternatives
-  interpreters?: ExpressionInterpreterList
+  interpreters?: InterpreterList
   schemaResolvers?: ResolverCandidate[]
   valueResolvers?: ResolverCandidate[]
   validationCollectors?: NodeCollector[]
@@ -72,13 +73,16 @@ export const schemaEnv = ({
 }: SchemaEnvOptions = {}): {
   resolveSchema: (schema: UnresolvedSchema, value: any) => ResolvedSchema
   resolveValue: (schema: ResolvedSchema, value: any) => any
-  validate: (schema: ResolvedSchema, value: any) => null | ValidationErrorSpec[]
-  validateThrow: (schema: ResolvedSchema, value: any) => void
+  validateSync: (
+    schema: ResolvedSchema,
+    value: any
+  ) => null | ValidationErrorSpec[]
+  validateSyncThrow: (schema: ResolvedSchema, value: any) => void
 } => {
-  interpreters = {
+  interpreters = interpreterList({
     ...interpreters,
     ...schemaTypeExpressions(types),
-  }
+  })
 
   const resolveSchema = resolveSchema_.bind(null, {
     resolvers: Array.isArray(schemaResolvers)
@@ -112,13 +116,13 @@ export const schemaEnv = ({
     resolveSchema,
   }
 
-  const validate = validate_.bind(null, validateContext)
-  const validateThrow = validateThrow_.bind(null, validateContext)
+  const validateSync = validateSync_.bind(null, validateContext)
+  const validateSyncThrow = validateSyncThrow_.bind(null, validateContext)
 
   return {
     resolveSchema,
     resolveValue,
-    validate,
-    validateThrow,
+    validateSync,
+    validateSyncThrow,
   }
 }

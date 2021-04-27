@@ -8,7 +8,6 @@ yarn add @orioro/schema
 Define complex data schemas and validation steps. Supports:
 - Conditional validation
 - Customizable validation criteria
-- todo: Async validation expressions
 
 # Steps:
 
@@ -144,8 +143,8 @@ For validate: if validate method "auto resolves" the received value, it would va
 - [`ResolvedSchema`](#resolvedschema)
 - [`ValidationSpec`](#validationspec)
 - [`BuiltInType`](#builtintype)
-- [`validate()`](#validate)
-- [`validateThrow()`](#validatethrow)
+- [`validateSync()`](#validatesync)
+- [`validateSyncThrow()`](#validatesyncthrow)
 - [`ValidationError`](#validationerror)
 
 ##### `validationCollectorObject()`
@@ -284,13 +283,13 @@ For validate: if validate method "auto resolves" the received value, it would va
 
 
 
-##### `validate()`
+##### `validateSync()`
 
 
 
-##### `validateThrow()`
+##### `validateSyncThrow()`
 
-Performs same validation process as `validate` but if an error
+Performs same validation process as `validateSync` but if an error
 is encountered throws a `ValidationError`.
 
 

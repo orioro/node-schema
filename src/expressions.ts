@@ -1,5 +1,5 @@
 import {
-  ExpressionInterpreter,
+  InterpreterSpec,
   typeExpressions,
   TypeMap,
   TypeAlternatives,
@@ -30,8 +30,8 @@ export const CORE_SCHEMA_TYPES: TypeMap = {
 export const schemaTypeExpressions = (
   types: TypeMap | TypeAlternatives = CORE_SCHEMA_TYPES
 ): {
-  $schemaType: ExpressionInterpreter
-  $isSchemaType: ExpressionInterpreter
+  $schemaType: InterpreterSpec
+  $isSchemaType: InterpreterSpec
 } => {
   const [$schemaType, $isSchemaType] = typeExpressions(types)
 

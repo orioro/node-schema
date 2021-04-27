@@ -1,13 +1,13 @@
 import {
+  prepareValidate,
   allowValues,
   prohibitValues,
   parallelCases,
-  validate,
 } from '@orioro/validate'
 
 import { schemaTypeExpressions, CORE_SCHEMA_TYPES } from './expressions'
 
-import { ALL_EXPRESSIONS } from '@orioro/expression'
+import { ALL_EXPRESSIONS, interpreterList } from '@orioro/expression'
 
 import {
   resolveSchema as resolveSchema_,
@@ -44,10 +44,12 @@ const TYPE_ERROR = {
   message: 'Invalid type',
 }
 
-const interpreters = {
-  ...ALL_EXPRESSIONS,
-  ...schemaTypeExpressions(CORE_SCHEMA_TYPES),
-}
+const { validateSync } = prepareValidate({
+  interpreters: interpreterList({
+    ...ALL_EXPRESSIONS,
+    ...schemaTypeExpressions(CORE_SCHEMA_TYPES),
+  }),
+})
 
 describe('collectValidations(schema, context) - required / optional', () => {
   test('required', () => {
@@ -92,9 +94,9 @@ describe('collectValidations(schema, context) - required / optional', () => {
     ]
 
     expectations.forEach(([input, expected]) => {
-      expect(
-        validate(validations[0].validationExpression, input, { interpreters })
-      ).toEqual(expected)
+      expect(validateSync(validations[0].validationExpression, input)).toEqual(
+        expected
+      )
     })
   })
 
@@ -137,9 +139,9 @@ describe('collectValidations(schema, context) - required / optional', () => {
     ]
 
     expectations.forEach(([input, expected]) => {
-      expect(
-        validate(validations[0].validationExpression, input, { interpreters })
-      ).toEqual(expected)
+      expect(validateSync(validations[0].validationExpression, input)).toEqual(
+        expected
+      )
     })
   })
 })
@@ -204,9 +206,9 @@ test('string validations', () => {
   ]
 
   expectations.forEach(([input, expected]) => {
-    expect(
-      validate(validations[0].validationExpression, input, { interpreters })
-    ).toEqual(expected)
+    expect(validateSync(validations[0].validationExpression, input)).toEqual(
+      expected
+    )
   })
 })
 

@@ -8,10 +8,11 @@ import {
 } from '@orioro/nested-map'
 
 import {
-  evaluate,
+  evaluateSync,
   isExpression,
+  interpreterList,
   ALL_EXPRESSIONS,
-  ExpressionInterpreter,
+  InterpreterList,
 } from '@orioro/expression'
 
 import { UnresolvedSchema, ResolvedSchema } from './types'
@@ -27,7 +28,7 @@ export const schemaResolverFunction = (): ResolverCandidate => [
 const SKIP_NESTED_RESOLUTION_KEYS = ['items', 'validation']
 
 type SchemaResolverExperssionOptions = {
-  interpreters?: { [key: string]: ExpressionInterpreter }
+  interpreters?: InterpreterList
   skipKeys?: string[]
   skipKeysNested?: string[]
 }
@@ -36,7 +37,7 @@ type SchemaResolverExperssionOptions = {
  * @function schemaResolverExpression
  */
 export const schemaResolverExpression = ({
-  interpreters = ALL_EXPRESSIONS,
+  interpreters = interpreterList(ALL_EXPRESSIONS),
   skipKeys = [],
   skipKeysNested = SKIP_NESTED_RESOLUTION_KEYS,
 }: SchemaResolverExperssionOptions = {}): ResolverCandidate => [
@@ -46,7 +47,7 @@ export const schemaResolverExpression = ({
         !skipKeys.some((key) => context.path.endsWith(key))
       : isExpression(interpreters, value),
   (expression, context) => {
-    const value = evaluate(
+    const value = evaluateSync(
       {
         interpreters,
         scope: { $$VALUE: context.value },

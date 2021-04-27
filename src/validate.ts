@@ -3,25 +3,27 @@ import {
   collectValidations,
   ParseValidationsContext,
 } from './collectValidations'
-import { validate as _validate, ValidationError } from '@orioro/validate'
-import { ExpressionInterpreterList } from '@orioro/expression'
+import { prepareValidate, ValidationError } from '@orioro/validate'
+import { InterpreterList } from '@orioro/expression'
 
 import { ResolvedSchema, ValidationErrorSpec } from './types'
 
 type ValidateContext = ParseValidationsContext & {
-  interpreters: ExpressionInterpreterList
+  interpreters: InterpreterList
 }
 
 /**
  * @todo * Rewrite tests using @orioro/jest-util
- * @todo validate Support async validations
- * @function validate
+ * @todo validateSync Support async validations
+ * @function validateSync
  */
-export const validate = (
+export const validateSync = (
   { collectors, resolveSchema, interpreters }: ValidateContext,
   resolvedSchema: ResolvedSchema,
   value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
 ): null | ValidationErrorSpec[] => {
+  const { validateSync: _validateSync } = prepareValidate({ interpreters })
+
   const validations = collectValidations(
     {
       collectors,
@@ -35,7 +37,7 @@ export const validate = (
     (allErrors, { path, validationExpression }) => {
       const pathValue = path === '' ? value : get(value, path)
 
-      const pathErrors = _validate(validationExpression, pathValue, {
+      const pathErrors = _validateSync(validationExpression, pathValue, {
         interpreters,
       })
 
@@ -57,17 +59,17 @@ export const validate = (
 }
 
 /**
- * Performs same validation process as `validate` but if an error
+ * Performs same validation process as `validateSync` but if an error
  * is encountered throws a `ValidationError`.
  *
- * @function validateThrow
+ * @function validateSyncThrow
  */
-export const validateThrow = (
+export const validateSyncThrow = (
   context: ValidateContext,
   resolvedSchema: ResolvedSchema,
   value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
 ): void => {
-  const errors = validate(context, resolvedSchema, value)
+  const errors = validateSync(context, resolvedSchema, value)
 
   if (errors !== null) {
     throw new ValidationError(errors, value)
