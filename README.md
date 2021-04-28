@@ -146,6 +146,7 @@ For validate: if validate method "auto resolves" the received value, it would va
 - [`validateSync()`](#validatesync)
 - [`validateSyncThrow()`](#validatesyncthrow)
 - [`ValidationError`](#validationerror)
+- [`validateAsync()`](#validateasync)
 
 ##### `validationCollectorObject()`
 
@@ -295,3 +296,7 @@ is encountered throws a `ValidationError`.
 
 
 ##### `ValidationError`
+
+
+
+##### `validateAsync()`

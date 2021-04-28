@@ -1,26 +1,23 @@
 import { get } from 'lodash'
-import {
-  collectValidations,
-  ParseValidationsContext,
-} from './collectValidations'
+import { collectValidations } from './collectValidations'
 import { prepareValidate, ValidationError } from '@orioro/validate'
-import { InterpreterList } from '@orioro/expression'
 
 import { ResolvedSchema, ValidationErrorSpec } from './types'
 
-type ValidateContext = ParseValidationsContext & {
-  interpreters: InterpreterList
-}
+import {
+  ValidateContext,
+  // ValidateOptions
+} from './validateUtil'
 
 /**
- * @todo * Rewrite tests using @orioro/jest-util
- * @todo validateSync Support async validations
+ * @todo validateSync Support validating only specific paths
  * @function validateSync
  */
 export const validateSync = (
   { collectors, resolveSchema, interpreters }: ValidateContext,
   resolvedSchema: ResolvedSchema,
   value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
+  // options?: ValidateOptions
 ): null | ValidationErrorSpec[] => {
   const { validateSync: _validateSync } = prepareValidate({ interpreters })
 
@@ -37,9 +34,7 @@ export const validateSync = (
     (allErrors, { path, validationExpression }) => {
       const pathValue = path === '' ? value : get(value, path)
 
-      const pathErrors = _validateSync(validationExpression, pathValue, {
-        interpreters,
-      })
+      const pathErrors = _validateSync(validationExpression, pathValue)
 
       return pathErrors === null
         ? allErrors
@@ -75,6 +70,8 @@ export const validateSyncThrow = (
     throw new ValidationError(errors, value)
   }
 }
+
+export * from './validateAsync'
 
 export {
   /**
