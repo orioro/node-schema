@@ -33,6 +33,9 @@
   },
   "author": "Simon Fan <simon@orioro.design>",
   "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist/**/*"
   ],
