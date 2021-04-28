@@ -2,8 +2,12 @@ import { get } from 'lodash'
 import { collectValidations } from './collectValidations'
 import { prepareValidate, ValidationError } from '@orioro/validate'
 
-import { ResolvedSchema, ValidationErrorSpec } from './types'
-import { ValidateContext, ValidateAsyncOptions } from './validateUtil'
+import {
+  ResolvedSchema,
+  ValidationErrorSpec,
+  ValidateContext,
+  ValidateAsyncOptions,
+} from './types'
 
 const _runValidationsAsyncSerial = (validateFn, validations, value) =>
   validations

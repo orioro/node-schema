@@ -1,7 +1,6 @@
 import { isPlainObject } from 'lodash'
 import {
   NodeCollector,
-  NodeCollectorContext,
   treeCollectNodes,
   pathJoin,
 } from '@orioro/tree-collect-nodes'
@@ -19,7 +18,11 @@ import {
 import { Expression } from '@orioro/expression'
 
 import { getError, fnPipe } from './util'
-import { UnresolvedSchema, ResolvedSchema, ValidationSpec } from './types'
+import {
+  ResolvedSchema,
+  ValidationSpec,
+  ParseValidationsContext,
+} from './types'
 
 const _type = (
   schema: ResolvedSchema,
@@ -250,11 +253,6 @@ export const validationCollectorDefault = (): NodeCollector => [
     throw new Error(`Validation collection failed. Unknown type ${schema.type}`)
   },
 ]
-
-export type ParseValidationsContext = NodeCollectorContext & {
-  collectors: NodeCollector[]
-  resolveSchema: (schema: UnresolvedSchema, value: any) => ResolvedSchema
-}
 
 /**
  * @function collectValidations

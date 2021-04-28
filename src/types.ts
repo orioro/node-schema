@@ -1,6 +1,15 @@
-import { Expression } from '@orioro/expression'
+import {
+  Expression,
+  InterpreterList,
+  TypeMap,
+  TypeAlternatives,
+} from '@orioro/expression'
 import { ValidationErrorSpec } from '@orioro/validate'
-import { Node, NodeCollector } from '@orioro/tree-collect-nodes'
+import {
+  Node,
+  NodeCollector,
+  NodeCollectorContext,
+} from '@orioro/tree-collect-nodes'
 import { ResolverCandidate } from '@orioro/nested-map'
 
 /**
@@ -26,10 +35,58 @@ export type ResolvedSchema = {
 }
 
 /**
+ * @typedef {Object} ResolveSchemaContext
+ */
+export type ResolveSchemaContext = {
+  resolvers: ResolverCandidate[]
+}
+
+export type SchemaResolverExperssionOptions = {
+  interpreters?: InterpreterList
+  skipKeys?: string[]
+  skipKeysNested?: string[]
+}
+
+export type ResolveValueContext = {
+  resolvers: ResolverCandidate[]
+}
+
+export type SchemaEnvOptions = {
+  types?: TypeMap | TypeAlternatives
+  interpreters?: InterpreterList
+  schemaResolvers?: ResolverCandidate[]
+  valueResolvers?: ResolverCandidate[]
+  validationCollectors?: NodeCollector[]
+}
+
+/**
  * @typedef {Object} ValidationSpec
  */
 export type ValidationSpec = Node & {
   validationExpression: Expression
+}
+
+/**
+ * @typedef {Object} ParseValidationsContext
+ */
+export type ParseValidationsContext = NodeCollectorContext & {
+  collectors: NodeCollector[]
+  resolveSchema: (schema: UnresolvedSchema, value: any) => ResolvedSchema
+}
+
+export type ValidateContext = ParseValidationsContext & {
+  interpreters: InterpreterList
+}
+
+export type ValidateOptions =
+  | string[]
+  | {
+      paths?: string[]
+      ignore?: string[]
+    }
+
+export type ValidateAsyncOptions = ValidateOptions & {
+  mode: 'serial' | 'parallel'
 }
 
 /**

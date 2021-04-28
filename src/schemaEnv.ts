@@ -27,13 +27,7 @@ import {
   validationCollectorDefault,
 } from './collectValidations'
 
-import {
-  interpreterList,
-  ALL_EXPRESSIONS,
-  InterpreterList,
-  TypeMap,
-  TypeAlternatives,
-} from '@orioro/expression'
+import { interpreterList, ALL_EXPRESSIONS } from '@orioro/expression'
 
 import { DATE_EXPRESSIONS } from '@orioro/expression-date'
 import { STRING_IS_EXPRESSIONS } from '@orioro/expression-string-is'
@@ -42,17 +36,8 @@ import {
   ResolvedSchema,
   UnresolvedSchema,
   ValidationErrorSpec,
-  ResolverCandidate,
-  NodeCollector,
+  SchemaEnvOptions,
 } from './types'
-
-type SchemaEnvOptions = {
-  types?: TypeMap | TypeAlternatives
-  interpreters?: InterpreterList
-  schemaResolvers?: ResolverCandidate[]
-  valueResolvers?: ResolverCandidate[]
-  validationCollectors?: NodeCollector[]
-}
 
 export const DEFAULT_EXPRESSION_INTERPRETERS = {
   ...ALL_EXPRESSIONS,

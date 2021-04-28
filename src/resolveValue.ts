@@ -1,6 +1,6 @@
 import { isPlainObject } from 'lodash'
 import { nestedMap, ResolverCandidate } from '@orioro/nested-map'
-import { ResolvedSchema } from './types'
+import { ResolvedSchema, ResolveValueContext } from './types'
 
 const _resolveUndefinedAndNull = (schema, context, resolve) => {
   if (context.value === null) {
@@ -84,10 +84,6 @@ export const defaultValueResolver = (
     )
   },
 ]
-
-export type ResolveValueContext = {
-  resolvers: ResolverCandidate[]
-}
 
 export const resolveValue = (
   context: ResolveValueContext,

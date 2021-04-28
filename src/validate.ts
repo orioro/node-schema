@@ -2,12 +2,7 @@ import { get } from 'lodash'
 import { collectValidations } from './collectValidations'
 import { prepareValidate, ValidationError } from '@orioro/validate'
 
-import { ResolvedSchema, ValidationErrorSpec } from './types'
-
-import {
-  ValidateContext,
-  // ValidateOptions
-} from './validateUtil'
+import { ResolvedSchema, ValidationErrorSpec, ValidateContext } from './types'
 
 /**
  * @todo validateSync Support validating only specific paths

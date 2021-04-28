@@ -12,10 +12,14 @@ import {
   isExpression,
   interpreterList,
   ALL_EXPRESSIONS,
-  InterpreterList,
 } from '@orioro/expression'
 
-import { UnresolvedSchema, ResolvedSchema } from './types'
+import {
+  UnresolvedSchema,
+  ResolvedSchema,
+  ResolveSchemaContext,
+  SchemaResolverExperssionOptions,
+} from './types'
 
 /**
  * @function schemaResolverFunction
@@ -26,12 +30,6 @@ export const schemaResolverFunction = (): ResolverCandidate => [
 ]
 
 const SKIP_NESTED_RESOLUTION_KEYS = ['items', 'validation']
-
-type SchemaResolverExperssionOptions = {
-  interpreters?: InterpreterList
-  skipKeys?: string[]
-  skipKeysNested?: string[]
-}
 
 /**
  * @function schemaResolverExpression
@@ -80,10 +78,6 @@ export const schemaResolverArray = arrayResolver
  * @function schemaResolverDefault
  */
 export const schemaResolverDefault = defaultResolver
-
-export type ResolveSchemaContext = {
-  resolvers: ResolverCandidate[]
-}
 
 /**
  * @function resolveSchema
