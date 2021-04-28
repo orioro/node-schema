@@ -40,7 +40,7 @@
     "@babel/core": "^7.12.13",
     "@babel/preset-env": "^7.12.13",
     "@babel/preset-typescript": "^7.12.13",
-    "@orioro/jest-util": "^1.0.0",
+    "@orioro/jest-util": "^1.7.0",
     "@orioro/readme": "^1.0.1",
     "@rollup/plugin-babel": "^5.2.3",
     "@rollup/plugin-commonjs": "^17.1.0",

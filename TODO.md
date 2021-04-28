@@ -1,6 +1,5 @@
-- *                    | Rewrite tests using @orioro/jest-util (src/validate.ts)
 - expressions          | Write specific tests for $schemaType and $isSchemaType expressions (src/expressions.ts)
 - parseValidationCases | Split alternatives into separate files by type (src/parseValidationCases.ts)
 - parseValidationCases | Tests for custom validation errors defined in schema (src/parseValidationCases.ts)
 - schemaEnv            | Add support for 'date' type (src/schemaEnv.ts)
-- validateSync         | Support async validations (src/validate.ts)
+- validateSync         | Support validating only specific paths (src/validate.ts)

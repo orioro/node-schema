@@ -1,6 +1,8 @@
 import {
-  validateSync as validateSync_,
-  validateSyncThrow as validateSyncThrow_,
+  validateSync,
+  validateAsync,
+  validateSyncThrow,
+  validateAsyncThrow,
   ValidationError,
 } from './validate'
 import { schemaTypeExpressions } from './expressions'
@@ -25,10 +27,12 @@ import { ALL_EXPRESSIONS, interpreterList } from '@orioro/expression'
 import { DATE_EXPRESSIONS } from '@orioro/expression-date'
 
 import {
-  _valueLabel,
-  _validationResultLabel,
-  _generateTests,
-} from '../test/util/generateTests'
+  testCases,
+  fnCallLabel,
+  valueLabel,
+  variableName,
+  ExpectedResultFn,
+} from '@orioro/jest-util'
 
 const context = {
   collectors: [
@@ -55,11 +59,68 @@ const context = {
   }),
 }
 
-const validateSync = validateSync_.bind(null, context)
-const validateSyncThrow = validateSyncThrow_.bind(null, context)
+const _validationResultLabel = (result) =>
+  result === null ? 'null' : result.map((r) => r.code).join(', ')
 
-const _validationTestLabel = (inputLabel, resultLabel) =>
-  `validateSync(schema, ${inputLabel}) -> ${resultLabel}`
+const _matchObjectComparator = (expected) =>
+  expected === null
+    ? (result) => expect(result).toEqual(null)
+    : (result) => expect(result).toMatchObject(expected)
+
+const _testValidateCases = (
+  cases,
+  resultComparator = _matchObjectComparator
+) => {
+  const syncCases = cases.map(([schema, input, expected]) => {
+    const _result: ExpectedResultFn = resultComparator(expected)
+    _result.label = valueLabel(expected)
+
+    return [schema, input, _result]
+  })
+
+  const asyncCases = cases.map(([schema, input, expected]) => {
+    const _result: ExpectedResultFn = (resultPromise) =>
+      resultPromise.then((result) => resultComparator(expected)(result))
+    _result.label = valueLabel(expected)
+
+    return [schema, input, _result]
+  })
+
+  testCases(
+    syncCases,
+    (schema, input) => validateSync(context, schema, input),
+    ([, input], result) =>
+      fnCallLabel(
+        'validateSync',
+        [variableName('context'), variableName('schema'), input],
+        result
+      )
+  )
+
+  testCases(
+    asyncCases,
+    (schema, input) =>
+      validateAsync(context, schema, input, { mode: 'serial' }),
+    ([, input], result) =>
+      fnCallLabel(
+        'validateAsync - serial',
+        [variableName('context'), variableName('schema'), input],
+        result
+      )
+  )
+
+  testCases(
+    asyncCases,
+    (schema, input) =>
+      validateAsync(context, schema, input, { mode: 'parallel' }),
+    ([, input], result) =>
+      fnCallLabel(
+        'validateAsync - parallel',
+        [variableName('context'), variableName('schema'), input],
+        result
+      )
+  )
+}
 
 describe('REQUIRED_ERROR and TYPE_ERROR', () => {
   const MATCH_REQUIRED_ERROR = [{ code: 'REQUIRED_ERROR' }]
@@ -78,7 +139,7 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
       },
     ],
     [
-      ['9', '', 'Some string'],
+      ['8', '', 'Some string'],
       {
         string: null,
         number: MATCH_TYPE_ERROR,
@@ -126,7 +187,7 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
         {
           /* empty object */
         },
-        {},
+        // {},
       ],
       {
         string: MATCH_TYPE_ERROR,
@@ -156,7 +217,7 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
     [
       [
         NaN,
-        BigInt('9'),
+        BigInt('7'),
         new Set(),
         new WeakSet(),
         new Map(),
@@ -180,9 +241,9 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
       Object.keys(resultByType).forEach((type) => {
         const result = resultByType[type]
 
-        const inputLabel = _valueLabel(input)
+        const inputLabel = valueLabel(input)
         const resultLabel = _validationResultLabel(result)
-        const testLabel = `validateSync required ${type}: ${inputLabel} -> ${resultLabel}`
+        const suiteLabel = `required ${type}: ${inputLabel} -> ${resultLabel}`
 
         const schema =
           type === 'object'
@@ -198,14 +259,34 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
 
         if (result === null) {
           // eslint-disable-next-line jest/valid-title
-          test(testLabel, () =>
-            expect(validateSync(schema, input)).toEqual(null)
-          )
+          describe(suiteLabel, () => {
+            test('validateSync', () =>
+              expect(validateSync(context, schema, input)).toEqual(null))
+            test('validateAsync - serial', () =>
+              expect(
+                validateAsync(context, schema, input, { mode: 'serial' })
+              ).resolves.toEqual(null))
+            test('validateAsync - parallel', () =>
+              expect(
+                validateAsync(context, schema, input, { mode: 'parallel' })
+              ).resolves.toEqual(null))
+          })
         } else {
           // eslint-disable-next-line jest/valid-title
-          test(testLabel, () =>
-            expect(validateSync(schema, input)).toMatchObject(result)
-          )
+          describe(suiteLabel, () => {
+            test('validateSync', () =>
+              expect(validateSync(context, schema, input)).toMatchObject(
+                result
+              ))
+            test('validateAsync - serial', () =>
+              expect(
+                validateAsync(context, schema, input, { mode: 'serial' })
+              ).resolves.toMatchObject(result))
+            test('validateAsync - parallel', () =>
+              expect(
+                validateAsync(context, schema, input, { mode: 'parallel' })
+              ).resolves.toMatchObject(result))
+          })
         }
       })
     })
@@ -213,149 +294,160 @@ describe('REQUIRED_ERROR and TYPE_ERROR', () => {
 })
 
 describe('enum -> ENUM_ERROR', () => {
-  test('empty enum', () => {
+  describe('empty enum', () => {
     const schema = {
       type: 'string',
       enum: [],
     }
-    expect(validateSync(schema, 'a')).toMatchObject([{ code: 'ENUM_ERROR' }])
-    expect(validateSync(schema, 'b')).toMatchObject([{ code: 'ENUM_ERROR' }])
+
+    _testValidateCases([
+      [schema, 'a', [{ code: 'ENUM_ERROR' }]],
+      [schema, 'b', [{ code: 'ENUM_ERROR' }]],
+    ])
   })
-  test('string options', () => {
+
+  describe('string options', () => {
     const schema = {
       type: 'string',
       enum: ['opt_a', 'opt_b', 'opt_c'],
     }
-    expect(validateSync(schema, 'opt_a')).toEqual(null)
-    expect(validateSync(schema, 'opt_b')).toEqual(null)
-    expect(validateSync(schema, 'opt_c')).toEqual(null)
-    expect(validateSync(schema, 'opt_d')).toMatchObject([
-      { code: 'ENUM_ERROR' },
+
+    _testValidateCases([
+      [schema, 'opt_a', null],
+      [schema, 'opt_b', null],
+      [schema, 'opt_c', null],
+      [schema, 'opt_d', [{ code: 'ENUM_ERROR' }]],
+      [schema, 1, [{ code: 'TYPE_ERROR' }]],
     ])
-    expect(validateSync(schema, 1)).toMatchObject([{ code: 'TYPE_ERROR' }])
   })
-  test('number options', () => {
+
+  describe('number options', () => {
     const schema = {
       type: 'number',
       enum: [1, 2, 3],
     }
-    expect(validateSync(schema, 1)).toEqual(null)
-    expect(validateSync(schema, 2)).toEqual(null)
-    expect(validateSync(schema, 3)).toEqual(null)
-    expect(validateSync(schema, 4)).toMatchObject([{ code: 'ENUM_ERROR' }])
-    expect(validateSync(schema, '1')).toMatchObject([{ code: 'TYPE_ERROR' }])
+
+    _testValidateCases([
+      [schema, 1, null],
+      [schema, 2, null],
+      [schema, 3, null],
+      [schema, 4, [{ code: 'ENUM_ERROR' }]],
+      [schema, '1', [{ code: 'TYPE_ERROR' }]],
+    ])
   })
 })
 
 describe('string', () => {
-  test('minLength -> STRING_MIN_LENGTH_ERROR', () => {
+  describe('minLength -> STRING_MIN_LENGTH_ERROR', () => {
     const schema = {
       type: 'string',
       minLength: 5,
     }
-    expect(validateSync(schema, '123')).toMatchObject([
-      { code: 'STRING_MIN_LENGTH_ERROR' },
+
+    _testValidateCases([
+      [schema, '123', [{ code: 'STRING_MIN_LENGTH_ERROR' }]],
+      [schema, '12345', null],
+      [schema, '123456', null],
     ])
-    expect(validateSync(schema, '12345')).toEqual(null)
-    expect(validateSync(schema, '123456')).toEqual(null)
   })
 
-  test('maxLength -> STRING_MAX_LENGTH_ERROR', () => {
+  describe('maxLength -> STRING_MAX_LENGTH_ERROR', () => {
     const schema = {
       type: 'string',
       maxLength: 5,
     }
-    expect(validateSync(schema, '123')).toEqual(null)
-    expect(validateSync(schema, '12345')).toEqual(null)
-    expect(validateSync(schema, '123456')).toMatchObject([
-      { code: 'STRING_MAX_LENGTH_ERROR' },
+
+    _testValidateCases([
+      [schema, '123', null],
+      [schema, '12345', null],
+      [schema, '123456', [{ code: 'STRING_MAX_LENGTH_ERROR' }]],
     ])
   })
 
-  test('simultaneous', () => {
+  describe('simultaneous', () => {
     const schema = {
       type: 'string',
       minLength: 5,
       maxLength: 10,
     }
-    expect(validateSync(schema, '123')).toMatchObject([
-      { code: 'STRING_MIN_LENGTH_ERROR' },
-    ])
-    expect(validateSync(schema, '12345')).toEqual(null)
-    expect(validateSync(schema, '1234567')).toEqual(null)
-    expect(validateSync(schema, '1234567890')).toEqual(null)
-    expect(validateSync(schema, '12345678901')).toMatchObject([
-      { code: 'STRING_MAX_LENGTH_ERROR' },
+
+    _testValidateCases([
+      [schema, '123', [{ code: 'STRING_MIN_LENGTH_ERROR' }]],
+      [schema, '12345', null],
+      [schema, '1234567', null],
+      [schema, '1234567890', null],
+      [schema, '12345678901', [{ code: 'STRING_MAX_LENGTH_ERROR' }]],
     ])
   })
 })
 
 describe('number', () => {
-  test('min -> NUMBER_MIN_ERROR', () => {
+  describe('min -> NUMBER_MIN_ERROR', () => {
     const schema = {
       type: 'number',
       min: 5,
     }
-    expect(validateSync(schema, 4)).toMatchObject([
-      { code: 'NUMBER_MIN_ERROR' },
+
+    _testValidateCases([
+      [schema, 4, [{ code: 'NUMBER_MIN_ERROR' }]],
+      [schema, 5, null],
+      [schema, 6, null],
     ])
-    expect(validateSync(schema, 5)).toEqual(null)
-    expect(validateSync(schema, 6)).toEqual(null)
   })
-  test('minExclusive -> NUMBER_MIN_ERROR', () => {
+
+  describe('minExclusive -> NUMBER_MIN_ERROR', () => {
     const schema = {
       type: 'number',
       minExclusive: 5,
     }
-    expect(validateSync(schema, 4)).toMatchObject([
-      { code: 'NUMBER_MIN_ERROR' },
+    _testValidateCases([
+      [schema, 4, [{ code: 'NUMBER_MIN_ERROR' }]],
+      [schema, 5, [{ code: 'NUMBER_MIN_ERROR' }]],
+      [schema, 6, null],
     ])
-    expect(validateSync(schema, 5)).toMatchObject([
-      { code: 'NUMBER_MIN_ERROR' },
-    ])
-    expect(validateSync(schema, 6)).toEqual(null)
   })
 
-  test('max -> NUMBER_MAX_ERROR', () => {
+  describe('max -> NUMBER_MAX_ERROR', () => {
     const schema = {
       type: 'number',
       max: 5,
     }
-    expect(validateSync(schema, 4)).toEqual(null)
-    expect(validateSync(schema, 5)).toEqual(null)
-    expect(validateSync(schema, 6)).toMatchObject([
-      { code: 'NUMBER_MAX_ERROR' },
+
+    _testValidateCases([
+      [schema, 4, null],
+      [schema, 5, null],
+      [schema, 6, [{ code: 'NUMBER_MAX_ERROR' }]],
     ])
   })
 
-  test('maxExclusive -> NUMBER_MAX_ERROR', () => {
+  describe('maxExclusive -> NUMBER_MAX_ERROR', () => {
     const schema = {
       type: 'number',
       maxExclusive: 5,
     }
-    expect(validateSync(schema, 4)).toEqual(null)
-    expect(validateSync(schema, 5)).toMatchObject([
-      { code: 'NUMBER_MAX_ERROR' },
-    ])
-    expect(validateSync(schema, 6)).toMatchObject([
-      { code: 'NUMBER_MAX_ERROR' },
+
+    _testValidateCases([
+      [schema, 4, null],
+      [schema, 5, [{ code: 'NUMBER_MAX_ERROR' }]],
+      [schema, 6, [{ code: 'NUMBER_MAX_ERROR' }]],
     ])
   })
 
-  test('multipleOf -> NUMBER_MULTIPLE_OF_ERROR', () => {
+  describe('multipleOf -> NUMBER_MULTIPLE_OF_ERROR', () => {
     const schema = {
       type: 'number',
       multipleOf: 5,
     }
-    expect(validateSync(schema, 0)).toEqual(null)
-    expect(validateSync(schema, 5)).toEqual(null)
-    expect(validateSync(schema, 10)).toEqual(null)
-    expect(validateSync(schema, 3)).toMatchObject([
-      { code: 'NUMBER_MULTIPLE_OF_ERROR' },
+
+    _testValidateCases([
+      [schema, 0, null],
+      [schema, 5, null],
+      [schema, 10, null],
+      [schema, 3, [{ code: 'NUMBER_MULTIPLE_OF_ERROR' }]],
     ])
   })
 
-  test('simultaneous - 1', () => {
+  describe('simultaneous', () => {
     const schema = {
       type: 'number',
       minExclusive: 5,
@@ -363,141 +455,157 @@ describe('number', () => {
       multipleOf: 5,
     }
 
-    expect(validateSync(schema, 4)).toMatchObject([
-      { code: 'NUMBER_MIN_ERROR' },
-      { code: 'NUMBER_MULTIPLE_OF_ERROR' },
-    ])
-    expect(validateSync(schema, 5)).toMatchObject([
-      { code: 'NUMBER_MIN_ERROR' },
-    ])
-    expect(validateSync(schema, 6)).toMatchObject([
-      { code: 'NUMBER_MULTIPLE_OF_ERROR' },
-    ])
-    expect(validateSync(schema, 10)).toEqual(null)
-    expect(validateSync(schema, 20)).toEqual(null)
-    expect(validateSync(schema, 25)).toMatchObject([
-      { code: 'NUMBER_MAX_ERROR' },
+    _testValidateCases([
+      [
+        schema,
+        4,
+        [{ code: 'NUMBER_MIN_ERROR' }, { code: 'NUMBER_MULTIPLE_OF_ERROR' }],
+      ],
+      [schema, 5, [{ code: 'NUMBER_MIN_ERROR' }]],
+      [schema, 6, [{ code: 'NUMBER_MULTIPLE_OF_ERROR' }]],
+      [schema, 10, null],
+      [schema, 20, null],
+      [schema, 25, [{ code: 'NUMBER_MAX_ERROR' }]],
     ])
   })
 })
 
 describe('ISODate', () => {
-  test('min', () => {
+  describe('min', () => {
     const schema = {
       type: 'ISODate',
       min: '2021-02-25T18:00:00.000-03:00',
     }
 
-    expect(validateSync(schema, '2021-02-25T18:00:00.000-03:00')).toEqual(null)
-    expect(validateSync(schema, '2021-02-25T19:00:00.000-03:00')).toEqual(null)
-    expect(
-      validateSync(schema, '2021-02-25T17:00:00.000-03:00')
-    ).toMatchObject([{ code: 'ISO_DATE_MIN_ERROR' }])
+    _testValidateCases([
+      [schema, '2021-02-25T18:00:00.000-03:00', null],
+      [schema, '2021-02-25T19:00:00.000-03:00', null],
+      [
+        schema,
+        '2021-02-25T17:00:00.000-03:00',
+        [{ code: 'ISO_DATE_MIN_ERROR' }],
+      ],
+    ])
   })
 
-  test('minExclusive', () => {
+  describe('minExclusive', () => {
     const schema = {
       type: 'ISODate',
       minExclusive: '2021-02-25T18:00:00.000-03:00',
     }
 
-    expect(
-      validateSync(schema, '2021-02-25T18:00:00.000-03:00')
-    ).toMatchObject([{ code: 'ISO_DATE_MIN_ERROR' }])
-    expect(validateSync(schema, '2021-02-25T19:00:00.000-03:00')).toEqual(null)
-    expect(
-      validateSync(schema, '2021-02-25T17:00:00.000-03:00')
-    ).toMatchObject([{ code: 'ISO_DATE_MIN_ERROR' }])
+    _testValidateCases([
+      [
+        schema,
+        '2021-02-25T18:00:00.000-03:00',
+        [{ code: 'ISO_DATE_MIN_ERROR' }],
+      ],
+      [schema, '2021-02-25T19:00:00.000-03:00', null],
+      [
+        schema,
+        '2021-02-25T17:00:00.000-03:00',
+        [{ code: 'ISO_DATE_MIN_ERROR' }],
+      ],
+    ])
   })
 
-  test('max', () => {
+  describe('max', () => {
     const schema = {
       type: 'ISODate',
       max: '2021-02-25T18:00:00.000-03:00',
     }
 
-    expect(validateSync(schema, '2021-02-25T18:00:00.000-03:00')).toEqual(null)
-    expect(
-      validateSync(schema, '2021-02-25T19:00:00.000-03:00')
-    ).toMatchObject([{ code: 'ISO_DATE_MAX_ERROR' }])
-    expect(validateSync(schema, '2021-02-25T17:00:00.000-03:00')).toEqual(null)
+    _testValidateCases([
+      [schema, '2021-02-25T18:00:00.000-03:00', null],
+      [
+        schema,
+        '2021-02-25T19:00:00.000-03:00',
+        [{ code: 'ISO_DATE_MAX_ERROR' }],
+      ],
+      [schema, '2021-02-25T17:00:00.000-03:00', null],
+    ])
   })
 
-  test('maxExclusive', () => {
+  describe('maxExclusive', () => {
     const schema = {
       type: 'ISODate',
       maxExclusive: '2021-02-25T18:00:00.000-03:00',
     }
 
-    expect(
-      validateSync(schema, '2021-02-25T18:00:00.000-03:00')
-    ).toMatchObject([{ code: 'ISO_DATE_MAX_ERROR' }])
-    expect(
-      validateSync(schema, '2021-02-25T19:00:00.000-03:00')
-    ).toMatchObject([{ code: 'ISO_DATE_MAX_ERROR' }])
-    expect(validateSync(schema, '2021-02-25T17:00:00.000-03:00')).toEqual(null)
+    _testValidateCases([
+      [
+        schema,
+        '2021-02-25T18:00:00.000-03:00',
+        [{ code: 'ISO_DATE_MAX_ERROR' }],
+      ],
+      [
+        schema,
+        '2021-02-25T19:00:00.000-03:00',
+        [{ code: 'ISO_DATE_MAX_ERROR' }],
+      ],
+      [schema, '2021-02-25T17:00:00.000-03:00', null],
+    ])
   })
 })
 
 describe('array', () => {
-  test('minLength -> ARRAY_MIN_LENGTH_ERROR', () => {
+  describe('minLength -> ARRAY_MIN_LENGTH_ERROR', () => {
     const schema = {
       type: 'array',
       minLength: 3,
     }
 
-    expect(validateSync(schema, [])).toMatchObject([
-      { code: 'ARRAY_MIN_LENGTH_ERROR' },
+    _testValidateCases([
+      [schema, [], [{ code: 'ARRAY_MIN_LENGTH_ERROR' }]],
+      [schema, [0], [{ code: 'ARRAY_MIN_LENGTH_ERROR' }]],
+      [schema, [0, 1, 2], null],
+      [schema, [0, 1, 2, 3, 4, 5], null],
     ])
-    expect(validateSync(schema, [0])).toMatchObject([
-      { code: 'ARRAY_MIN_LENGTH_ERROR' },
-    ])
-    expect(validateSync(schema, [0, 1, 2])).toEqual(null)
-    expect(validateSync(schema, [0, 1, 2, 3, 4, 5])).toEqual(null)
   })
 
-  test('maxLength -> ARRAY_MAX_LENGTH_ERROR', () => {
+  describe('maxLength -> ARRAY_MAX_LENGTH_ERROR', () => {
     const schema = {
       type: 'array',
       maxLength: 3,
     }
 
-    expect(validateSync(schema, [])).toEqual(null)
-    expect(validateSync(schema, [0])).toEqual(null)
-    expect(validateSync(schema, [0, 1, 2])).toEqual(null)
-    expect(validateSync(schema, [0, 1, 2, 3, 4, 5])).toMatchObject([
-      { code: 'ARRAY_MAX_LENGTH_ERROR' },
+    _testValidateCases([
+      [schema, [], null],
+      [schema, [0], null],
+      [schema, [0, 1, 2], null],
+      [schema, [0, 1, 2, 3, 4, 5], [{ code: 'ARRAY_MAX_LENGTH_ERROR' }]],
     ])
   })
 
-  test('uniqueItems -> ARRAY_UNIQUE_ITEMS_ERROR', () => {
+  describe('uniqueItems -> ARRAY_UNIQUE_ITEMS_ERROR', () => {
     const schema = {
       type: 'array',
       uniqueItems: true,
     }
 
-    expect(validateSync(schema, [])).toEqual(null)
-    expect(validateSync(schema, [0])).toEqual(null)
-    expect(validateSync(schema, [0, 1, 2])).toEqual(null)
-    expect(validateSync(schema, [0, 1, 2, 0])).toMatchObject([
-      { code: 'ARRAY_UNIQUE_ITEMS_ERROR' },
+    _testValidateCases([
+      [schema, [], null],
+      [schema, [0], null],
+      [schema, [0, 1, 2], null],
+      [schema, [0, 1, 2, 0], [{ code: 'ARRAY_UNIQUE_ITEMS_ERROR' }]],
+      [schema, [{}, {}], [{ code: 'ARRAY_UNIQUE_ITEMS_ERROR' }]],
+      [
+        schema,
+        [
+          { key1: 'value1', key2: 'value2' },
+          { key1: 'value1', key2: 'value2' },
+        ],
+        [{ code: 'ARRAY_UNIQUE_ITEMS_ERROR' }],
+      ],
+      [
+        schema,
+        [
+          { key1: 'value1', key2: 'value2' },
+          { key1: 'ANOTHER_VALUE', key2: 'value2' },
+        ],
+        null,
+      ],
     ])
-    expect(validateSync(schema, [{}, {}])).toMatchObject([
-      { code: 'ARRAY_UNIQUE_ITEMS_ERROR' },
-    ])
-    expect(
-      validateSync(schema, [
-        { key1: 'value1', key2: 'value2' },
-        { key1: 'value1', key2: 'value2' },
-      ])
-    ).toMatchObject([{ code: 'ARRAY_UNIQUE_ITEMS_ERROR' }])
-
-    expect(
-      validateSync(schema, [
-        { key1: 'value1', key2: 'value2' },
-        { key1: 'ANOTHER_VALUE', key2: 'value2' },
-      ])
-    ).toEqual(null)
   })
 
   describe('items: immediately nested values - array -> string', () => {
@@ -511,9 +619,10 @@ describe('array', () => {
       },
     }
 
-    const expectations = [
-      [['12345', '1234567', '1234567890'], null],
+    _testValidateCases([
+      [schema, ['12345', '1234567', '1234567890'], null],
       [
+        schema,
         ['1234', '123', '12345', '12345678901'],
         [
           { path: '0', code: 'STRING_MIN_LENGTH_ERROR' },
@@ -522,19 +631,14 @@ describe('array', () => {
         ],
       ],
       [
+        schema,
         [1, '12345', '123'],
         [
           { path: '0', code: 'TYPE_ERROR' },
           { path: '2', code: 'STRING_MIN_LENGTH_ERROR' },
         ],
       ],
-    ]
-
-    _generateTests(
-      expectations,
-      (input) => validateSync(schema, input),
-      _validationTestLabel
-    )
+    ])
   })
 
   describe('items: nested - array -> object', () => {
@@ -555,10 +659,11 @@ describe('array', () => {
       },
     }
 
-    const expectations = [
-      [null, null],
-      [[], null],
+    _testValidateCases([
+      [schema, null, null],
+      [schema, [], null],
       [
+        schema,
         [
           { strRequired: 'some string', strMinLen5: '12345' },
           { strRequired: 'another string', strMinLen5: '123456' },
@@ -566,6 +671,7 @@ describe('array', () => {
         null,
       ],
       [
+        schema,
         [{ strMinLen5: '12345' }, { strMinLen5: '1234' }],
         [
           { code: 'REQUIRED_ERROR', path: '0.strRequired' },
@@ -573,13 +679,7 @@ describe('array', () => {
           { code: 'STRING_MIN_LENGTH_ERROR', path: '1.strMinLen5' },
         ],
       ],
-    ]
-
-    _generateTests(
-      expectations,
-      (input) => validateSync(schema, input),
-      _validationTestLabel
-    )
+    ])
   })
 
   describe('items: nested - array -> array -> object', () => {
@@ -604,8 +704,9 @@ describe('array', () => {
       },
     }
 
-    const expectations = [
+    _testValidateCases([
       [
+        schema,
         // input:
         [
           [
@@ -622,6 +723,7 @@ describe('array', () => {
       ],
 
       [
+        schema,
         // input:
         [
           [{ strMinLen5: '12345' }, { strRequired: 'another string' }],
@@ -638,13 +740,7 @@ describe('array', () => {
           { code: 'STRING_MIN_LENGTH_ERROR', path: '2.0.strMinLen5' },
         ],
       ],
-    ]
-
-    _generateTests(
-      expectations,
-      (input) => validateSync(schema, input),
-      _validationTestLabel
-    )
+    ])
   })
 
   describe('items: nested - array -> object -> array -> value', () => {
@@ -673,8 +769,9 @@ describe('array', () => {
       },
     }
 
-    const expectations = [
+    _testValidateCases([
       [
+        schema,
         [
           { strRequired: 'str1', strMinLen5: '12345', arrayMinLen1: [null] },
           {
@@ -686,6 +783,7 @@ describe('array', () => {
         null,
       ],
       [
+        schema,
         [
           { strMinLen5: '12345', arrayMinLen1: [] },
           {
@@ -702,13 +800,7 @@ describe('array', () => {
           { code: 'STRING_MAX_LENGTH_ERROR', path: '1.arrayMinLen1.2' },
         ],
       ],
-    ]
-
-    _generateTests(
-      expectations,
-      (input) => validateSync(schema, input),
-      _validationTestLabel
-    )
+    ])
   })
 
   describe('items: as tuple', () => {
@@ -748,8 +840,9 @@ describe('array', () => {
       ],
     }
 
-    const expectations = [
+    _testValidateCases([
       [
+        schema,
         [
           'some string',
           50,
@@ -762,6 +855,7 @@ describe('array', () => {
         null,
       ],
       [
+        schema,
         ['Some string', 49, { strMinLen5: '123' }, [0]],
         [
           { code: 'NUMBER_MIN_ERROR', path: '1' },
@@ -772,6 +866,7 @@ describe('array', () => {
         ],
       ],
       [
+        schema,
         [
           'some string',
           50,
@@ -782,13 +877,7 @@ describe('array', () => {
         ],
         [{ code: 'ARRAY_EXACT_LENGTH_ERROR', path: '' }],
       ],
-    ]
-
-    _generateTests(
-      expectations,
-      (input) => validateSync(schema, input),
-      _validationTestLabel
-    )
+    ])
   })
 })
 
@@ -839,11 +928,12 @@ describe('object', () => {
   describe('properties: immediately nested properties errors', () => {
     const schema = objSchema1
 
-    const expectations = [
-      [null, [{ path: 'strRequired', code: 'REQUIRED_ERROR' }]],
-      [{}, [{ path: 'strRequired', code: 'REQUIRED_ERROR' }]],
-      [{ strRequired: 'some string' }, null],
+    _testValidateCases([
+      [schema, null, [{ path: 'strRequired', code: 'REQUIRED_ERROR' }]],
+      [schema, {}, [{ path: 'strRequired', code: 'REQUIRED_ERROR' }]],
+      [schema, { strRequired: 'some string' }, null],
       [
+        schema,
         {
           strRequired: null,
           strMinLen5: '1234',
@@ -858,6 +948,7 @@ describe('object', () => {
         ],
       ],
       [
+        schema,
         {
           strRequired: 'some string',
           strMinLen5: '12345',
@@ -866,45 +957,40 @@ describe('object', () => {
         },
         null,
       ],
-    ]
-
-    _generateTests(
-      expectations,
-      (input) => validateSync(schema, input),
-      _validationTestLabel
-    )
+    ])
   })
 
-  test('properties: if given any unknown property, should fail validation', () => {
-    expect(
-      validateSync(objSchema1, {
-        strRequired: 'some string',
-        strMinLen5: '12345',
-        numMin5: 5,
-        arrayMinLen1: ['1'],
-        unknownProp: 'UNKNOWN_VALUE',
-      })
-    ).toMatchObject([{ code: 'OBJECT_UNKNOWN_PROPERTIES_ERROR', path: '' }])
+  describe('properties: if given any unknown property, should fail validation', () => {
+    const schema = objSchema1
+
+    _testValidateCases([
+      [
+        schema,
+        {
+          strRequired: 'some string',
+          strMinLen5: '12345',
+          numMin5: 5,
+          arrayMinLen1: ['1'],
+          unknownProp: 'UNKNOWN_VALUE',
+        },
+        [{ code: 'OBJECT_UNKNOWN_PROPERTIES_ERROR', path: '' }],
+      ],
+    ])
   })
 
   describe('properties: nested errors - object -> object -> value', () => {
     const schema = objSchema2
 
-    const expectations = [
+    _testValidateCases([
       [
+        schema,
         null,
         [
           { path: 'objSchema1.strRequired', code: 'REQUIRED_ERROR' },
           { path: 'strRequired', code: 'REQUIRED_ERROR' },
         ],
       ],
-    ]
-
-    _generateTests(
-      expectations,
-      (input) => validateSync(schema, input),
-      _validationTestLabel
-    )
+    ])
   })
 
   describe('properties: nested errors - object -> array -> object -> value', () => {
@@ -926,8 +1012,9 @@ describe('object', () => {
       },
     }
 
-    const expectations = [
+    _testValidateCases([
       [
+        schema,
         {
           strRequired: 'str_1',
           arrayNested: [
@@ -939,6 +1026,7 @@ describe('object', () => {
         null,
       ],
       [
+        schema,
         {
           arrayNested: [
             { strMinLen5: '1234' },
@@ -953,13 +1041,7 @@ describe('object', () => {
           { code: 'STRING_MIN_LENGTH_ERROR', path: 'arrayNested.1.strMinLen5' },
         ],
       ],
-    ]
-
-    _generateTests(
-      expectations,
-      (input) => validateSync(schema, input),
-      _validationTestLabel
-    )
+    ])
   })
 
   describe('properties: interdependent values custom validation cases', () => {
@@ -999,24 +1081,20 @@ describe('object', () => {
       ],
     }
 
-    const expectations = [
-      [{ minLength: 5, maxLength: 10, value: '12345678' }, null],
+    _testValidateCases([
+      [schema, { minLength: 5, maxLength: 10, value: '12345678' }, null],
       [
+        schema,
         { minLength: 5, maxLength: 10, value: '123' },
         [{ code: 'CUSTOM_MIN_LENGTH_ERROR', path: '' }],
       ],
-      [{ minLength: 3, maxLength: 10, value: '123' }, null],
+      [schema, { minLength: 3, maxLength: 10, value: '123' }, null],
       [
+        schema,
         { minLength: 3, maxLength: 10, value: '12345678901' },
         [{ code: 'CUSTOM_MAX_LENGTH_ERROR', path: '' }],
       ],
-    ]
-
-    _generateTests(
-      expectations,
-      (input) => validateSync(schema, input),
-      _validationTestLabel
-    )
+    ])
   })
 
   describe('properties: interdependent values custom validation cases - realistic example', () => {
@@ -1057,8 +1135,9 @@ describe('object', () => {
       ],
     }
 
-    const expectations = [
+    _testValidateCases([
       [
+        schema,
         {
           givenName: 'João',
           familyName: 'Silva',
@@ -1068,6 +1147,7 @@ describe('object', () => {
         null,
       ],
       [
+        schema,
         {
           givenName: 'João',
           familyName: 'Silva',
@@ -1077,6 +1157,7 @@ describe('object', () => {
         [{ code: 'DRIVER_MIN_AGE_18', path: 'age' }],
       ],
       [
+        schema,
         {
           role: 'driver',
           age: 17,
@@ -1086,22 +1167,42 @@ describe('object', () => {
           { code: 'REQUIRED_ERROR', path: 'givenName' },
         ],
       ],
-    ]
-
-    _generateTests(
-      expectations,
-      (input) => validateSync(schema, input),
-      _validationTestLabel
-    )
+    ])
   })
 })
 
-test('validateSyncThrow', () => {
-  const schema = {
-    type: 'string',
-    minLength: 5,
-  }
+describe('validate[Sync/Async]Throw', () => {
+  test('validateSyncThrow', () => {
+    const schema = {
+      type: 'string',
+      minLength: 5,
+    }
 
-  expect(validateSyncThrow(schema, '12345')).toEqual(undefined)
-  expect(() => validateSyncThrow(schema, '1234')).toThrow(ValidationError)
+    expect(validateSyncThrow(context, schema, '12345')).toEqual(undefined)
+    expect(() => validateSyncThrow(context, schema, '1234')).toThrow(
+      ValidationError
+    )
+  })
+
+  test('validateAsyncThrow - serial', () => {
+    const schema = {
+      type: 'string',
+      minLength: 5,
+    }
+
+    return expect(
+      validateAsyncThrow(context, schema, '1234', { mode: 'serial' })
+    ).rejects.toThrow(ValidationError)
+  })
+
+  test('validateAsyncThrow - parallel', () => {
+    const schema = {
+      type: 'string',
+      minLength: 5,
+    }
+
+    return expect(
+      validateAsyncThrow(context, schema, '1234', { mode: 'parallel' })
+    ).rejects.toThrow(ValidationError)
+  })
 })
