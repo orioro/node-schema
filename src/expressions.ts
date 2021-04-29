@@ -24,7 +24,6 @@ export const CORE_SCHEMA_TYPES: TypeMap = {
 }
 
 /**
- * @todo expressions Write specific tests for $schemaType and $isSchemaType expressions
  * @function schemaTypeExpression
  */
 export const schemaTypeExpressions = (
