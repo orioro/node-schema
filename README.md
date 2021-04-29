@@ -117,17 +117,6 @@ For validate: if validate method "auto resolves" the received value, it would va
 - [`validationCollectorDefault()`](#validationcollectordefault)
 - [`collectValidations()`](#collectvalidations)
 - [`schemaTypeExpression()`](#schematypeexpression)
-- [`ENUM`](#enum)
-- [`STRING_MIN_LENGTH`](#string_min_length)
-- [`STRING_MAX_LENGTH`](#string_max_length)
-- [`NUMBER_MIN`](#number_min)
-- [`NUMBER_MAX`](#number_max)
-- [`NUMBER_MULTIPLE_OF`](#number_multiple_of)
-- [`ARRAY_MIN_LENGTH`](#array_min_length)
-- [`ARRAY_MAX_LENGTH`](#array_max_length)
-- [`ARRAY_EXACT_LENGTH`](#array_exact_length)
-- [`ARRAY_UNIQUE_ITEMS`](#array_unique_items)
-- [`OBJECT_UNKNOWN_PROPERTIES`](#object_unknown_properties)
 - [`parseValidationCases()`](#parsevalidationcases)
 - [`schemaResolverFunction()`](#schemaresolverfunction)
 - [`schemaResolverExpression()`](#schemaresolverexpression)
@@ -149,6 +138,17 @@ For validate: if validate method "auto resolves" the received value, it would va
 - [`validateAsync()`](#validateasync)
 - [`validateSync()`](#validatesync)
 - [`validateSyncThrow()`](#validatesyncthrow)
+- [`ARRAY_MIN_LENGTH`](#array_min_length)
+- [`ARRAY_MAX_LENGTH`](#array_max_length)
+- [`ARRAY_EXACT_LENGTH`](#array_exact_length)
+- [`ARRAY_UNIQUE_ITEMS`](#array_unique_items)
+- [`ENUM`](#enum)
+- [`NUMBER_MIN`](#number_min)
+- [`NUMBER_MAX`](#number_max)
+- [`NUMBER_MULTIPLE_OF`](#number_multiple_of)
+- [`OBJECT_UNKNOWN_PROPERTIES`](#object_unknown_properties)
+- [`STRING_MIN_LENGTH`](#string_min_length)
+- [`STRING_MAX_LENGTH`](#string_max_length)
 
 ##### `validationCollectorObject()`
 
@@ -179,50 +179,6 @@ For validate: if validate method "auto resolves" the received value, it would va
 
 
 ##### `schemaTypeExpression()`
-
-
-
-##### `ENUM`
-
-
-
-##### `STRING_MIN_LENGTH`
-
-
-
-##### `STRING_MAX_LENGTH`
-
-
-
-##### `NUMBER_MIN`
-
-
-
-##### `NUMBER_MAX`
-
-
-
-##### `NUMBER_MULTIPLE_OF`
-
-
-
-##### `ARRAY_MIN_LENGTH`
-
-
-
-##### `ARRAY_MAX_LENGTH`
-
-
-
-##### `ARRAY_EXACT_LENGTH`
-
-
-
-##### `ARRAY_UNIQUE_ITEMS`
-
-
-
-##### `OBJECT_UNKNOWN_PROPERTIES`
 
 
 
@@ -310,3 +266,47 @@ For validate: if validate method "auto resolves" the received value, it would va
 
 Performs same validation process as `validateSync` but if an error
 is encountered throws a `ValidationError`.
+
+
+
+##### `ARRAY_MIN_LENGTH`
+
+
+
+##### `ARRAY_MAX_LENGTH`
+
+
+
+##### `ARRAY_EXACT_LENGTH`
+
+
+
+##### `ARRAY_UNIQUE_ITEMS`
+
+
+
+##### `ENUM`
+
+
+
+##### `NUMBER_MIN`
+
+
+
+##### `NUMBER_MAX`
+
+
+
+##### `NUMBER_MULTIPLE_OF`
+
+
+
+##### `OBJECT_UNKNOWN_PROPERTIES`
+
+
+
+##### `STRING_MIN_LENGTH`
+
+
+
+##### `STRING_MAX_LENGTH`
