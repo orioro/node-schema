@@ -21,8 +21,32 @@ import { getError, fnPipe } from './util'
 import {
   ResolvedSchema,
   ValidationSpec,
-  ParseValidationsContext,
+  CollectValidationsContext,
+  CollectValidationsPathOptions,
 } from './types'
+
+const _pathMatches = (
+  path: string,
+  pathOptions?: CollectValidationsPathOptions
+): boolean => {
+  if (!pathOptions) {
+    return true
+  } else {
+    const { include, includePattern, skip, skipPattern } = pathOptions
+
+    if (include) {
+      return include.includes(path)
+    } else if (includePattern) {
+      return includePattern.some((pattern) => path.startsWith(pattern))
+    } else if (skip) {
+      return !skip.includes(path)
+    } else if (skipPattern) {
+      return !skipPattern.some((pattern) => path.startsWith(pattern))
+    } else {
+      return true
+    }
+  }
+}
 
 const _type = (
   schema: ResolvedSchema,
@@ -76,20 +100,27 @@ export const validationCollectorObject = (
   caseAlternatives = DEFAULT_OBJECT_CASES
 ): NodeCollector => [
   (schema) => isPlainObject(schema) && objectTypes.includes(schema.type),
-  (schema, context: ParseValidationsContext): ValidationSpec[] => {
+  (schema, context: CollectValidationsContext): ValidationSpec[] => {
     if (!isPlainObject(schema.properties)) {
       throw new Error('Invalid object schema: missing properties object')
     }
 
-    const objectCasesValidation: ValidationSpec = {
-      path: typeof context.path === 'string' ? context.path : '',
-      validationExpression: _wrapValidationExp(
-        schema,
-        _casesValidationExp(schema, caseAlternatives)
-      ),
-    }
+    const _path = typeof context.path === 'string' ? context.path : ''
 
-    return Object.keys(schema.properties).reduce(
+    const objectCasesValidation: ValidationSpec | null = _pathMatches(
+      _path,
+      context.pathOptions
+    )
+      ? {
+          path: _path,
+          validationExpression: _wrapValidationExp(
+            schema,
+            _casesValidationExp(schema, caseAlternatives)
+          ),
+        }
+      : null
+
+    const objectPropValidations = Object.keys(schema.properties).reduce(
       (acc, key) => {
         const propertySchema = schema.properties[key]
         const propertyValue = isPlainObject(context.value)
@@ -109,8 +140,12 @@ export const validationCollectorObject = (
           ),
         ]
       },
-      [objectCasesValidation]
+      []
     )
+
+    return objectCasesValidation !== null
+      ? [objectCasesValidation, ...objectPropValidations]
+      : objectPropValidations
   },
 ]
 
@@ -184,17 +219,26 @@ export const validationCollectorArray = (
 ): NodeCollector => [
   (schema) => isPlainObject(schema) && listTypes.includes(schema.type),
   (schema, context) => {
-    const itemValidations = _parseItemValidations(schema, context)
+    const _path = typeof context.path === 'string' ? context.path : ''
 
-    const cases = parseValidationCases(schema, caseAlternatives)
+    const arrayItemValidations = _parseItemValidations(schema, context)
 
-    return [
-      {
-        path: context.path,
-        validationExpression: _wrapValidationExp(schema, parallelCases(cases)),
-      },
-      ...itemValidations,
-    ]
+    const arrayCasesValidation: ValidationSpec | null = _pathMatches(
+      _path,
+      context.pathOptions
+    )
+      ? {
+          path: _path,
+          validationExpression: _wrapValidationExp(
+            schema,
+            parallelCases(parseValidationCases(schema, caseAlternatives))
+          ),
+        }
+      : null
+
+    return arrayCasesValidation !== null
+      ? [arrayCasesValidation, ...arrayItemValidations]
+      : arrayItemValidations
   },
 ]
 
@@ -204,9 +248,15 @@ const _validationResolver = (
 ): NodeCollector => [
   (schema) => isPlainObject(schema) && types.includes(schema.type),
   (schema, context) => {
+    const _path = typeof context.path === 'string' ? context.path : ''
+
+    if (!_pathMatches(_path, context.pathOptions)) {
+      return []
+    }
+
     return [
       {
-        path: typeof context.path === 'string' ? context.path : '',
+        path: _path,
         validationExpression: _wrapValidationExp(
           schema,
           _casesValidationExp(schema, caseResolvers)
@@ -258,7 +308,7 @@ export const validationCollectorDefault = (): NodeCollector => [
  * @function collectValidations
  */
 export const collectValidations = (
-  context: ParseValidationsContext,
+  context: CollectValidationsContext,
   schema: ResolvedSchema,
   value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
 ): ValidationSpec[] =>

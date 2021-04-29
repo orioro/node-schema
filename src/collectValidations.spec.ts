@@ -6,6 +6,7 @@ import {
 } from '@orioro/validate'
 
 import { schemaTypeExpressions, CORE_SCHEMA_TYPES } from './expressions'
+import { ResolvedSchema } from './types'
 
 import { ALL_EXPRESSIONS, interpreterList } from '@orioro/expression'
 
@@ -23,7 +24,10 @@ import {
   validationCollectorArray,
   validationCollectorDefault,
   validationCollectorString,
+  validationCollectorNumber,
 } from './collectValidations'
+
+import { testCases, fnCallLabel, variableName } from '@orioro/jest-util'
 
 const resolveSchema = resolveSchema_.bind(null, {
   resolvers: [
@@ -252,5 +256,135 @@ describe('array validations', () => {
     )
 
     expect(validations).toMatchSnapshot()
+  })
+})
+
+describe('object validations', () => {
+  const REQUIRED_STRING = {
+    type: 'string',
+    required: true,
+  }
+
+  const REQUIRED_NUMBER = {
+    type: 'number',
+    required: true,
+  }
+
+  const schemaSimple: ResolvedSchema = {
+    type: 'object',
+    properties: {
+      key1: REQUIRED_STRING,
+      key2: REQUIRED_STRING,
+      key3: REQUIRED_STRING,
+      key4: REQUIRED_STRING,
+    },
+  }
+
+  const schemaComplex: ResolvedSchema = {
+    type: 'object',
+    properties: {
+      key1: REQUIRED_STRING,
+      key2: REQUIRED_NUMBER,
+      key3: {
+        type: 'object',
+        properties: {
+          key31: REQUIRED_STRING,
+          key32: REQUIRED_NUMBER,
+        },
+      },
+      key4: {
+        type: 'object',
+        properties: {
+          key41: REQUIRED_STRING,
+          key42: {
+            type: 'object',
+            properties: {
+              key421: REQUIRED_NUMBER,
+              key422: REQUIRED_STRING,
+            },
+          },
+          key43: REQUIRED_NUMBER,
+        },
+      },
+    },
+  }
+
+  const context = {
+    collectors: [
+      validationCollectorObject(),
+      validationCollectorString(),
+      validationCollectorNumber(),
+      validationCollectorDefault(),
+    ],
+    resolveSchema,
+  }
+
+  test('basic', () => {
+    const validations = collectValidations(context, schemaComplex, {})
+
+    expect(validations).toMatchSnapshot()
+
+    expect(validations.map((v) => v.path)).toEqual([
+      '',
+      'key1',
+      'key2',
+      'key3',
+      'key3.key31',
+      'key3.key32',
+      'key4',
+      'key4.key41',
+      'key4.key42',
+      'key4.key42.key421',
+      'key4.key42.key422',
+      'key4.key43',
+    ])
+  })
+
+  describe('pathOptions', () => {
+    testCases(
+      [
+        [{ include: ['key1', 'key4'] }, schemaSimple, ['key1', 'key4']],
+        [{ include: ['key1', 'key4'] }, schemaComplex, ['key1', 'key4']],
+        [
+          { includePattern: ['key1', 'key4'] },
+          schemaComplex,
+          [
+            'key1',
+            'key4',
+            'key4.key41',
+            'key4.key42',
+            'key4.key42.key421',
+            'key4.key42.key422',
+            'key4.key43',
+          ],
+        ],
+        [
+          { skipPattern: ['key1', 'key4'] },
+          schemaComplex,
+          ['', 'key2', 'key3', 'key3.key31', 'key3.key32'],
+        ],
+      ],
+      (pathOptions, schema) => {
+        return collectValidations(
+          {
+            ...context,
+            pathOptions,
+          },
+          schema,
+          {}
+        ).map((v) => v.path)
+      },
+      ([pathOptions, schema], result) =>
+        fnCallLabel(
+          'collectValidations - pathOptions',
+          [
+            pathOptions,
+            variableName(
+              schema === schemaSimple ? 'schemaSimple' : 'schemaComplex'
+            ),
+          ],
+          result
+        )
+    )
   })
 })

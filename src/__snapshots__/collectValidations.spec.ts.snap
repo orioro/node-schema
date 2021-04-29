@@ -416,3 +416,547 @@ Array [
   },
 ]
 `;
+
+exports[`object validations basic 1`] = `
+Array [
+  Object {
+    "path": "",
+    "validationExpression": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      null,
+      Array [
+        "$if",
+        Array [
+          "$isSchemaType",
+          "object",
+        ],
+        Array [
+          "$pipe",
+          Array [
+            Array [
+              "$arrayMap",
+              Array [
+                "$if",
+                Array [
+                  "$evaluate",
+                  Array [
+                    "$value",
+                    "0",
+                  ],
+                  Array [
+                    "$value",
+                    "$$PARENT_SCOPE",
+                  ],
+                ],
+                null,
+                Array [
+                  "$value",
+                  "1",
+                ],
+              ],
+              Array [
+                Array [
+                  Array [
+                    "$arrayIncludesAll",
+                    Array [
+                      "$objectKeys",
+                    ],
+                    Array [
+                      "key1",
+                      "key2",
+                      "key3",
+                      "key4",
+                    ],
+                  ],
+                  Object {
+                    "code": "OBJECT_UNKNOWN_PROPERTIES_ERROR",
+                  },
+                ],
+              ],
+            ],
+            Array [
+              "$arrayFilter",
+              Array [
+                "$notEq",
+                null,
+              ],
+            ],
+          ],
+        ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`object\`",
+        },
+      ],
+    ],
+  },
+  Object {
+    "path": "key1",
+    "validationExpression": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      Object {
+        "code": "REQUIRED_ERROR",
+        "message": "Value is required",
+      },
+      Array [
+        "$if",
+        Array [
+          "$isSchemaType",
+          "string",
+        ],
+        null,
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`string\`",
+        },
+      ],
+    ],
+  },
+  Object {
+    "path": "key2",
+    "validationExpression": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      Object {
+        "code": "REQUIRED_ERROR",
+        "message": "Value is required",
+      },
+      Array [
+        "$if",
+        Array [
+          "$isSchemaType",
+          "number",
+        ],
+        null,
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`number\`",
+        },
+      ],
+    ],
+  },
+  Object {
+    "path": "key3",
+    "validationExpression": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      null,
+      Array [
+        "$if",
+        Array [
+          "$isSchemaType",
+          "object",
+        ],
+        Array [
+          "$pipe",
+          Array [
+            Array [
+              "$arrayMap",
+              Array [
+                "$if",
+                Array [
+                  "$evaluate",
+                  Array [
+                    "$value",
+                    "0",
+                  ],
+                  Array [
+                    "$value",
+                    "$$PARENT_SCOPE",
+                  ],
+                ],
+                null,
+                Array [
+                  "$value",
+                  "1",
+                ],
+              ],
+              Array [
+                Array [
+                  Array [
+                    "$arrayIncludesAll",
+                    Array [
+                      "$objectKeys",
+                    ],
+                    Array [
+                      "key31",
+                      "key32",
+                    ],
+                  ],
+                  Object {
+                    "code": "OBJECT_UNKNOWN_PROPERTIES_ERROR",
+                  },
+                ],
+              ],
+            ],
+            Array [
+              "$arrayFilter",
+              Array [
+                "$notEq",
+                null,
+              ],
+            ],
+          ],
+        ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`object\`",
+        },
+      ],
+    ],
+  },
+  Object {
+    "path": "key3.key31",
+    "validationExpression": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      Object {
+        "code": "REQUIRED_ERROR",
+        "message": "Value is required",
+      },
+      Array [
+        "$if",
+        Array [
+          "$isSchemaType",
+          "string",
+        ],
+        null,
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`string\`",
+        },
+      ],
+    ],
+  },
+  Object {
+    "path": "key3.key32",
+    "validationExpression": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      Object {
+        "code": "REQUIRED_ERROR",
+        "message": "Value is required",
+      },
+      Array [
+        "$if",
+        Array [
+          "$isSchemaType",
+          "number",
+        ],
+        null,
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`number\`",
+        },
+      ],
+    ],
+  },
+  Object {
+    "path": "key4",
+    "validationExpression": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      null,
+      Array [
+        "$if",
+        Array [
+          "$isSchemaType",
+          "object",
+        ],
+        Array [
+          "$pipe",
+          Array [
+            Array [
+              "$arrayMap",
+              Array [
+                "$if",
+                Array [
+                  "$evaluate",
+                  Array [
+                    "$value",
+                    "0",
+                  ],
+                  Array [
+                    "$value",
+                    "$$PARENT_SCOPE",
+                  ],
+                ],
+                null,
+                Array [
+                  "$value",
+                  "1",
+                ],
+              ],
+              Array [
+                Array [
+                  Array [
+                    "$arrayIncludesAll",
+                    Array [
+                      "$objectKeys",
+                    ],
+                    Array [
+                      "key41",
+                      "key42",
+                      "key43",
+                    ],
+                  ],
+                  Object {
+                    "code": "OBJECT_UNKNOWN_PROPERTIES_ERROR",
+                  },
+                ],
+              ],
+            ],
+            Array [
+              "$arrayFilter",
+              Array [
+                "$notEq",
+                null,
+              ],
+            ],
+          ],
+        ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`object\`",
+        },
+      ],
+    ],
+  },
+  Object {
+    "path": "key4.key41",
+    "validationExpression": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      Object {
+        "code": "REQUIRED_ERROR",
+        "message": "Value is required",
+      },
+      Array [
+        "$if",
+        Array [
+          "$isSchemaType",
+          "string",
+        ],
+        null,
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`string\`",
+        },
+      ],
+    ],
+  },
+  Object {
+    "path": "key4.key42",
+    "validationExpression": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      null,
+      Array [
+        "$if",
+        Array [
+          "$isSchemaType",
+          "object",
+        ],
+        Array [
+          "$pipe",
+          Array [
+            Array [
+              "$arrayMap",
+              Array [
+                "$if",
+                Array [
+                  "$evaluate",
+                  Array [
+                    "$value",
+                    "0",
+                  ],
+                  Array [
+                    "$value",
+                    "$$PARENT_SCOPE",
+                  ],
+                ],
+                null,
+                Array [
+                  "$value",
+                  "1",
+                ],
+              ],
+              Array [
+                Array [
+                  Array [
+                    "$arrayIncludesAll",
+                    Array [
+                      "$objectKeys",
+                    ],
+                    Array [
+                      "key421",
+                      "key422",
+                    ],
+                  ],
+                  Object {
+                    "code": "OBJECT_UNKNOWN_PROPERTIES_ERROR",
+                  },
+                ],
+              ],
+            ],
+            Array [
+              "$arrayFilter",
+              Array [
+                "$notEq",
+                null,
+              ],
+            ],
+          ],
+        ],
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`object\`",
+        },
+      ],
+    ],
+  },
+  Object {
+    "path": "key4.key42.key421",
+    "validationExpression": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      Object {
+        "code": "REQUIRED_ERROR",
+        "message": "Value is required",
+      },
+      Array [
+        "$if",
+        Array [
+          "$isSchemaType",
+          "number",
+        ],
+        null,
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`number\`",
+        },
+      ],
+    ],
+  },
+  Object {
+    "path": "key4.key42.key422",
+    "validationExpression": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      Object {
+        "code": "REQUIRED_ERROR",
+        "message": "Value is required",
+      },
+      Array [
+        "$if",
+        Array [
+          "$isSchemaType",
+          "string",
+        ],
+        null,
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`string\`",
+        },
+      ],
+    ],
+  },
+  Object {
+    "path": "key4.key43",
+    "validationExpression": Array [
+      "$if",
+      Array [
+        "$in",
+        Array [
+          null,
+          undefined,
+        ],
+      ],
+      Object {
+        "code": "REQUIRED_ERROR",
+        "message": "Value is required",
+      },
+      Array [
+        "$if",
+        Array [
+          "$isSchemaType",
+          "number",
+        ],
+        null,
+        Object {
+          "code": "TYPE_ERROR",
+          "message": "Must be type \`number\`",
+        },
+      ],
+    ],
+  },
+]
+`;

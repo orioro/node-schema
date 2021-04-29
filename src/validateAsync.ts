@@ -7,6 +7,7 @@ import {
   ValidationErrorSpec,
   ValidateContext,
   ValidateAsyncOptions,
+  CollectValidationsPathOptions,
 } from './types'
 
 const _runValidationsAsyncSerial = (validateFn, validations, value) =>
@@ -55,6 +56,34 @@ const _runValidationsAsyncParallel = (validateFn, validations, value) =>
     return result.length === 0 ? null : result
   })
 
+const DEFAULT_ASYNC_MODE = 'serial'
+
+const _parseOptions = (
+  options?: ValidateAsyncOptions | string[]
+): {
+  mode: string
+  pathOptions: CollectValidationsPathOptions | undefined
+} => {
+  if (!options) {
+    return {
+      mode: DEFAULT_ASYNC_MODE,
+      pathOptions: undefined,
+    }
+  } else if (Array.isArray(options)) {
+    return {
+      mode: DEFAULT_ASYNC_MODE,
+      pathOptions: { include: options },
+    }
+  } else {
+    const { mode, ...pathOptions } = options
+
+    return {
+      mode,
+      pathOptions,
+    }
+  }
+}
+
 /**
  * @function validateAsync
  */
@@ -62,12 +91,14 @@ export const validateAsync = (
   { collectors, resolveSchema, interpreters }: ValidateContext,
   resolvedSchema: ResolvedSchema,
   value: any, // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
-  options?: ValidateAsyncOptions
+  options?: ValidateAsyncOptions | string[]
 ): Promise<null | ValidationErrorSpec[]> => {
+  const { mode, pathOptions } = _parseOptions(options)
   const { validateAsync: _validateAsync } = prepareValidate({ interpreters })
 
   const validations = collectValidations(
     {
+      pathOptions,
       collectors,
       resolveSchema,
     },
@@ -75,7 +106,7 @@ export const validateAsync = (
     value
   )
 
-  return options && options.mode === 'parallel'
+  return mode === 'parallel'
     ? _runValidationsAsyncParallel(_validateAsync, validations, value)
     : _runValidationsAsyncSerial(_validateAsync, validations, value)
 }

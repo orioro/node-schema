@@ -66,26 +66,27 @@ export type ValidationSpec = Node & {
   validationExpression: Expression
 }
 
+export type CollectValidationsPathOptions = {
+  include?: string[]
+  includePattern?: string[]
+  skip?: string[]
+  skipPattern?: string[]
+}
+
 /**
- * @typedef {Object} ParseValidationsContext
+ * @typedef {Object} CollectValidationsContext
  */
-export type ParseValidationsContext = NodeCollectorContext & {
+export type CollectValidationsContext = NodeCollectorContext & {
   collectors: NodeCollector[]
+  pathOptions?: CollectValidationsPathOptions
   resolveSchema: (schema: UnresolvedSchema, value: any) => ResolvedSchema
 }
 
-export type ValidateContext = ParseValidationsContext & {
+export type ValidateContext = CollectValidationsContext & {
   interpreters: InterpreterList
 }
 
-export type ValidateOptions =
-  | string[]
-  | {
-      paths?: string[]
-      ignore?: string[]
-    }
-
-export type ValidateAsyncOptions = ValidateOptions & {
+export type ValidateAsyncOptions = CollectValidationsPathOptions & {
   mode: 'serial' | 'parallel'
 }
 

@@ -2,22 +2,29 @@ import { get } from 'lodash'
 import { collectValidations } from './collectValidations'
 import { prepareValidate, ValidationError } from '@orioro/validate'
 
-import { ResolvedSchema, ValidationErrorSpec, ValidateContext } from './types'
+import {
+  ResolvedSchema,
+  ValidationErrorSpec,
+  ValidateContext,
+  CollectValidationsPathOptions,
+} from './types'
 
 /**
- * @todo validateSync Support validating only specific paths
  * @function validateSync
  */
 export const validateSync = (
   { collectors, resolveSchema, interpreters }: ValidateContext,
   resolvedSchema: ResolvedSchema,
-  value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
-  // options?: ValidateOptions
+  value: any, // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
+  pathOptions?: CollectValidationsPathOptions | string[]
 ): null | ValidationErrorSpec[] => {
   const { validateSync: _validateSync } = prepareValidate({ interpreters })
 
   const validations = collectValidations(
     {
+      pathOptions: Array.isArray(pathOptions)
+        ? { include: pathOptions }
+        : pathOptions,
       collectors,
       resolveSchema,
     },
@@ -57,9 +64,10 @@ export const validateSync = (
 export const validateSyncThrow = (
   context: ValidateContext,
   resolvedSchema: ResolvedSchema,
-  value: any // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
+  value: any, // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
+  pathOptions?: CollectValidationsPathOptions | string[]
 ): void => {
-  const errors = validateSync(context, resolvedSchema, value)
+  const errors = validateSync(context, resolvedSchema, value, pathOptions)
 
   if (errors !== null) {
     throw new ValidationError(errors, value)

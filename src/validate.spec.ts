@@ -60,7 +60,11 @@ const context = {
 }
 
 const _validationResultLabel = (result) =>
-  result === null ? 'null' : result.map((r) => r.code).join(', ')
+  typeof result === 'function'
+    ? result
+    : result === null
+    ? 'null'
+    : result.map((r) => r.code).join(', ')
 
 const _matchObjectComparator = (expected) =>
   expected === null
@@ -71,53 +75,65 @@ const _testValidateCases = (
   cases,
   resultComparator = _matchObjectComparator
 ) => {
-  const syncCases = cases.map(([schema, input, expected]) => {
-    const _result: ExpectedResultFn = resultComparator(expected)
-    _result.label = valueLabel(expected)
+  const syncCases = cases.map((_case) => {
+    const expected = _case[_case.length - 1]
+    const args = _case.slice(0, _case.length - 1)
 
-    return [schema, input, _result]
+    const _result: ExpectedResultFn = resultComparator(expected)
+    _result.label = _validationResultLabel(expected)
+
+    return [...args, _result]
   })
 
-  const asyncCases = cases.map(([schema, input, expected]) => {
+  const asyncCases = cases.map((_case) => {
+    const expected = _case[_case.length - 1]
+    const args = _case.slice(0, _case.length - 1)
+
     const _result: ExpectedResultFn = (resultPromise) =>
       resultPromise.then((result) => resultComparator(expected)(result))
-    _result.label = valueLabel(expected)
+    _result.label = _validationResultLabel(expected)
 
-    return [schema, input, _result]
+    return [...args, _result]
   })
 
   testCases(
     syncCases,
-    (schema, input) => validateSync(context, schema, input),
-    ([, input], result) =>
+    (schema, input, options) => validateSync(context, schema, input, options),
+    ([, input, options], result) =>
       fnCallLabel(
         'validateSync',
-        [variableName('context'), variableName('schema'), input],
-        result
+        [variableName('context'), variableName('schema'), input, options],
+        _validationResultLabel(result)
       )
   )
 
   testCases(
     asyncCases,
-    (schema, input) =>
-      validateAsync(context, schema, input, { mode: 'serial' }),
-    ([, input], result) =>
+    (schema, input, options) => validateAsync(context, schema, input, options),
+    ([, input, options], result) =>
       fnCallLabel(
-        'validateAsync - serial',
-        [variableName('context'), variableName('schema'), input],
-        result
+        'validateAsync',
+        [variableName('context'), variableName('schema'), input, options],
+        _validationResultLabel(result)
       )
   )
 
+  // Force test parallel mode as well
   testCases(
     asyncCases,
-    (schema, input) =>
-      validateAsync(context, schema, input, { mode: 'parallel' }),
-    ([, input], result) =>
+    (schema, input, options = {}) => {
+      options = Array.isArray(options) ? { include: options } : options
+
+      return validateAsync(context, schema, input, {
+        ...options,
+        mode: 'parallel',
+      })
+    },
+    ([, input, options], result) =>
       fnCallLabel(
-        'validateAsync - parallel',
-        [variableName('context'), variableName('schema'), input],
-        result
+        'validateAsync[Parallel]',
+        [variableName('context'), variableName('schema'), input, options],
+        _validationResultLabel(result)
       )
   )
 }
@@ -957,6 +973,16 @@ describe('object', () => {
         },
         null,
       ],
+
+      // path options
+      [schema, {}, ['strOptional'], null],
+      [schema, {}, { skip: ['strRequired'] }, null],
+      [
+        schema,
+        {},
+        { skip: ['strOptional'] },
+        [{ path: 'strRequired', code: 'REQUIRED_ERROR' }],
+      ],
     ])
   })
 
@@ -1040,6 +1066,17 @@ describe('object', () => {
           { code: 'STRING_MIN_LENGTH_ERROR', path: 'arrayNested.0.strMinLen5' },
           { code: 'STRING_MIN_LENGTH_ERROR', path: 'arrayNested.1.strMinLen5' },
         ],
+      ],
+      [
+        schema,
+        {
+          arrayNested: [
+            { strMinLen5: '1234' },
+            { strRequired: 'str_3', strMinLen5: '123' },
+          ],
+        },
+        { include: ['strRequired'] },
+        [{ code: 'REQUIRED_ERROR', path: 'strRequired' }],
       ],
     ])
   })
