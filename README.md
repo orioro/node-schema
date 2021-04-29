@@ -141,12 +141,14 @@ For validate: if validate method "auto resolves" the received value, it would va
 - [`schemaEnv()`](#schemaenv)
 - [`UnresolvedSchema`](#unresolvedschema)
 - [`ResolvedSchema`](#resolvedschema)
+- [`ResolveSchemaContext`](#resolveschemacontext)
 - [`ValidationSpec`](#validationspec)
+- [`CollectValidationsContext`](#collectvalidationscontext)
 - [`BuiltInType`](#builtintype)
-- [`validateSync()`](#validatesync)
-- [`validateSyncThrow()`](#validatesyncthrow)
 - [`ValidationError`](#validationerror)
 - [`validateAsync()`](#validateasync)
+- [`validateSync()`](#validatesync)
+- [`validateSyncThrow()`](#validatesyncthrow)
 
 ##### `validationCollectorObject()`
 
@@ -276,11 +278,27 @@ For validate: if validate method "auto resolves" the received value, it would va
 
 
 
+##### `ResolveSchemaContext`
+
+
+
 ##### `ValidationSpec`
 
 
 
+##### `CollectValidationsContext`
+
+
+
 ##### `BuiltInType`
+
+
+
+##### `ValidationError`
+
+
+
+##### `validateAsync()`
 
 
 
@@ -292,11 +310,3 @@ For validate: if validate method "auto resolves" the received value, it would va
 
 Performs same validation process as `validateSync` but if an error
 is encountered throws a `ValidationError`.
-
-
-
-##### `ValidationError`
-
-
-
-##### `validateAsync()`
