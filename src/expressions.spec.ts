@@ -25,7 +25,7 @@ describe('schemaTypeExpressions', () => {
         [undefined, 'undefined'],
         [null, 'null'],
       ],
-      (input, expression) =>
+      (input) =>
         evaluateSync(
           {
             interpreters,
@@ -51,7 +51,7 @@ describe('schemaTypeExpressions', () => {
         [undefined, 'undefined', true],
         [null, 'null', true],
       ],
-      (input, type, expression) =>
+      (input, type) =>
         evaluateSync(
           {
             interpreters,

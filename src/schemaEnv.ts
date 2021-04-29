@@ -46,7 +46,6 @@ export const DEFAULT_EXPRESSION_INTERPRETERS = {
 }
 
 /**
- * @todo schemaEnv Add support for 'date' type
  * @function schemaEnv
  */
 export const schemaEnv = ({
